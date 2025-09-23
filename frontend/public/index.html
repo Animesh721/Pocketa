@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/icon.svg" type="image/svg+xml" />
+
+    <!-- Mobile-optimized viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" />
+
+    <!-- PWA and mobile app support -->
+    <meta name="theme-color" content="#3b82f6" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Pocketa" />
+
+    <!-- iOS Safari pinned tab -->
+    <meta name="apple-touch-icon" content="%PUBLIC_URL%/icon.svg" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/icon.svg" />
+
+    <!-- Android Chrome -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Pocketa" />
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Description and keywords for better discovery -->
+    <meta name="description" content="Pocketa - Manage your student finances, track spending, get AI advice, and save money effectively" />
+    <meta name="keywords" content="allowance, finance, student, money, tracker, savings, expenses, AI, budget" />
+
+    <!-- Open Graph for social sharing -->
+    <meta property="og:title" content="Pocketa" />
+    <meta property="og:description" content="Manage your student finances effectively with AI-powered insights" />
+    <meta property="og:type" content="website" />
+
+    <!-- Prevent zoom on input focus (iOS) -->
+    <meta name="format-detection" content="telephone=no" />
+
+    <title>Pocketa</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+
+      // PWA Install Prompt
+      let deferredPrompt;
+      let installBanner = null;
+
+      function createInstallBanner() {
+        // Don't create if banner already exists
+        if (installBanner) return;
+
+        installBanner = document.createElement('div');
+        installBanner.id = 'pwa-install-banner';
+        installBanner.innerHTML = `
+          <div style="position: fixed; top: 0; left: 0; right: 0; background: #3b82f6; color: white; padding: 12px 16px; text-align: center; z-index: 10000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-family: system-ui, -apple-system, sans-serif;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+              <span style="font-size: 14px;">📱 Install Pocketa for a better mobile experience!</span>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button id="install-accept-btn" style="background: white; color: #3b82f6; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 13px;">Install</button>
+                <button id="install-later-btn" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.5); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px;">Later</button>
+                <button id="install-close-btn" style="background: transparent; color: white; border: none; padding: 4px 8px; cursor: pointer; font-size: 16px; line-height: 1;" title="Close">✕</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(installBanner);
+
+        // Add install button click handler
+        const installBtn = document.getElementById('install-accept-btn');
+        if (installBtn) {
+          installBtn.addEventListener('click', () => {
+            console.log('Install button clicked');
+            if (deferredPrompt) {
+              deferredPrompt.prompt();
+              deferredPrompt.userChoice.then((choiceResult) => {
+                console.log('User choice:', choiceResult.outcome);
+                if (choiceResult.outcome === 'accepted') {
+                  console.log('User accepted the install prompt');
+                } else {
+                  console.log('User dismissed the install prompt');
+                }
+                deferredPrompt = null;
+                removeInstallBanner();
+              });
+            } else {
+              console.log('No deferred prompt available');
+              removeInstallBanner();
+            }
+          });
+        }
+
+        // Add later button click handler
+        const laterBtn = document.getElementById('install-later-btn');
+        if (laterBtn) {
+          laterBtn.addEventListener('click', () => {
+            console.log('Later button clicked');
+            removeInstallBanner();
+            // Set a flag to not show again for this session
+            sessionStorage.setItem('pwa-install-dismissed', 'true');
+          });
+        }
+
+        // Add close button click handler
+        const closeBtn = document.getElementById('install-close-btn');
+        if (closeBtn) {
+          closeBtn.addEventListener('click', () => {
+            console.log('Close button clicked');
+            removeInstallBanner();
+            // Set a longer flag to not show again
+            localStorage.setItem('pwa-install-permanently-dismissed', 'true');
+          });
+        }
+      }
+
+      function removeInstallBanner() {
+        if (installBanner && installBanner.parentNode) {
+          installBanner.parentNode.removeChild(installBanner);
+          installBanner = null;
+        }
+      }
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('beforeinstallprompt event fired');
+        e.preventDefault();
+        deferredPrompt = e;
+
+        // Check if user has permanently dismissed
+        if (localStorage.getItem('pwa-install-permanently-dismissed') === 'true') {
+          console.log('Install banner permanently dismissed');
+          return;
+        }
+
+        // Check if user has dismissed for this session
+        if (sessionStorage.getItem('pwa-install-dismissed') === 'true') {
+          console.log('Install banner dismissed for this session');
+          return;
+        }
+
+        // Wait a bit before showing the banner
+        setTimeout(createInstallBanner, 2000);
+      });
+
+      // Track if app was launched from home screen
+      window.addEventListener('DOMContentLoaded', () => {
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+        if (isPWA) {
+          console.log('App launched as PWA');
+          // Add PWA-specific styling or behavior here
+          document.body.classList.add('pwa-mode');
+        }
+      });
+    </script>
+
+    <style>
+      .pwa-mode {
+        /* PWA-specific styles */
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+    </style>
+  </body>
+</html>

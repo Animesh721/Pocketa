@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="url(#gradient)"/>
+
+  <!-- Coin/Money Symbol -->
+  <circle cx="256" cy="200" r="80" fill="white" opacity="0.9"/>
+  <text x="256" y="220" text-anchor="middle" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="#3b82f6">₹</text>
+
+  <!-- Chart/Growth Lines -->
+  <path d="M120 350 L200 320 L280 340 L360 300 L400 280" stroke="white" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.8"/>
+  <circle cx="200" cy="320" r="6" fill="white"/>
+  <circle cx="280" cy="340" r="6" fill="white"/>
+  <circle cx="360" cy="300" r="6" fill="white"/>
+
+  <!-- Brain/AI Symbol (small) -->
+  <circle cx="400" cy="120" r="25" fill="white" opacity="0.8"/>
+  <path d="M385 115 Q395 105 405 115 Q415 105 425 115" stroke="#3b82f6" stroke-width="3" fill="none"/>
+  <path d="M385 125 Q395 135 405 125 Q415 135 425 125" stroke="#3b82f6" stroke-width="3" fill="none"/>
+</svg>
