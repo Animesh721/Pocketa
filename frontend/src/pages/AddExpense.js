@@ -85,7 +85,7 @@ const AddExpense = () => {
         const currentDay = currentDate.getDate();
 
         const totalExpenses = (stats.allowance?.spent || 0) + (stats.essentials?.spent || 0) + (stats.extra?.spent || 0);
-        const totalTransactions = expensesResponse.data.total || 0;
+        const totalTransactions = expensesResponse.data.count || 0;
         const averagePerDay = currentDay > 0 ? totalExpenses / currentDay : 0;
 
         setMonthlyStats({

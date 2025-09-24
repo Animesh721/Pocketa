@@ -187,16 +187,16 @@ const Dashboard = () => {
                     <div>
                       <div className="flex justify-between text-xs text-slate-300 mb-2">
                         <span>Spent: ₹{currentAllowance.currentTopup.spent.toLocaleString()}</span>
-                        <span>{((currentAllowance.currentTopup.spent / currentAllowance.currentTopup.amount) * 100).toFixed(0)}%</span>
+                        <span>{currentAllowance.currentTopup.originalAmount > 0 ? ((currentAllowance.currentTopup.spent / currentAllowance.currentTopup.originalAmount) * 100).toFixed(0) : 0}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className={`progress-fill ${
-                            (currentAllowance.currentTopup.spent / currentAllowance.currentTopup.amount) >= 0.9 ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                            (currentAllowance.currentTopup.spent / currentAllowance.currentTopup.amount) >= 0.7 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                            currentAllowance.currentTopup.originalAmount > 0 && (currentAllowance.currentTopup.spent / currentAllowance.currentTopup.originalAmount) >= 0.9 ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                            currentAllowance.currentTopup.originalAmount > 0 && (currentAllowance.currentTopup.spent / currentAllowance.currentTopup.originalAmount) >= 0.7 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-blue-600'
                           }`}
                           style={{
-                            width: `${Math.min((currentAllowance.currentTopup.spent / currentAllowance.currentTopup.amount) * 100, 100)}%`
+                            width: `${currentAllowance.currentTopup.originalAmount > 0 ? Math.min((currentAllowance.currentTopup.spent / currentAllowance.currentTopup.originalAmount) * 100, 100) : 0}%`
                           }}
                         ></div>
                       </div>
