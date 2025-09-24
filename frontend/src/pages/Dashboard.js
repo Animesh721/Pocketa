@@ -20,19 +20,28 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      console.log('Fetching dashboard data...');
+
       const [statsResponse, transactionsResponse, allowanceResponse] = await Promise.all([
         axios.get('/api/stats'),
         axios.get('/api/transactions?limit=10'),
         axios.get('/api/allowance/current')
       ]);
 
+      console.log('Dashboard responses received:', { statsResponse, transactionsResponse, allowanceResponse });
+
       setStats(statsResponse.data);
-      setTransactions(transactionsResponse.data.transactions);
+      setTransactions(transactionsResponse.data.transactions || []);
       setCurrentAllowance(allowanceResponse.data);
       setError('');
     } catch (error) {
       console.error('Dashboard fetch error:', error);
-      setError('Failed to load dashboard data. Please try again.');
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      setError(`Failed to load dashboard data: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
     }
