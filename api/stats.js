@@ -91,6 +91,12 @@ export default async function handler(req, res) {
       totalEssentials,
       essentialsCount: userEssentials.length,
       transactionsCount: recentTransactions.length,
+      // Add category breakdown for ExpenseChart
+      categoryBreakdown: {
+        'Essentials': totalSpentThisMonth,
+        'Extra': 0,
+        'Allowance': user.lastAllowanceAmount || 0
+      },
       // Add current period for dashboard display
       currentPeriod: {
         start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),

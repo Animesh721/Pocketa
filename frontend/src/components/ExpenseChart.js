@@ -8,6 +8,29 @@ const COLORS = {
 };
 
 const ExpenseChart = ({ data }) => {
+  console.log('📊 ExpenseChart received data:', data);
+
+  // Add null/undefined check
+  if (!data || typeof data !== 'object') {
+    console.log('⚠️ ExpenseChart: No data provided, using empty object');
+    const emptyData = {};
+    const chartData = Object.entries(emptyData).map(([category, amount]) => ({
+      name: category,
+      value: amount,
+      color: COLORS[category] || '#6b7280'
+    }));
+    const totalSpent = 0;
+
+    return (
+      <div className="card">
+        <h3 className="text-lg font-semibold text-white mb-4">Spending Breakdown</h3>
+        <div className="flex items-center justify-center h-64 text-slate-300">
+          <p>No expenses recorded yet</p>
+        </div>
+      </div>
+    );
+  }
+
   const chartData = Object.entries(data).map(([category, amount]) => ({
     name: category,
     value: amount,
