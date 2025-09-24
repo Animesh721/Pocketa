@@ -41,22 +41,30 @@ const connectDB = async () => {
   }
 };
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api/transactions', transactionRoutes);
-app.use('/api/stats', statsRoutes);
-app.use('/api/advice', adviceRoutes);
-app.use('/api/allowance', allowanceRoutes);
-app.use('/api/reports', reportsRoutes);
+// Routes (no /api prefix needed in Vercel)
+app.use('/auth', authRoutes);
+app.use('/user', userRoutes);
+app.use('/transactions', transactionRoutes);
+app.use('/stats', statsRoutes);
+app.use('/advice', adviceRoutes);
+app.use('/allowance', allowanceRoutes);
+app.use('/reports', reportsRoutes);
 
 // Health check
-app.get('/api', (req, res) => {
+app.get('/', (req, res) => {
   res.json({ message: 'Pocketa API is running on Vercel!' });
 });
 
 // Serverless function handler
 module.exports = async (req, res) => {
-  await connectDB();
-  return app(req, res);
+  try {
+    await connectDB();
+    return app(req, res);
+  } catch (error) {
+    console.error('Serverless function error:', error);
+    return res.status(500).json({
+      error: 'Internal Server Error',
+      message: error.message
+    });
+  }
 };
