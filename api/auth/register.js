@@ -5,11 +5,9 @@ const jwt = require('jsonwebtoken');
 // Import User model
 const User = require('../../backend/models/User');
 
-// Connect to MongoDB
-let isConnected = false;
-
+// Connect to MongoDB - simplified approach
 const connectDB = async () => {
-  if (isConnected && mongoose.connection.readyState === 1) {
+  if (mongoose.connection.readyState === 1) {
     return;
   }
 
@@ -22,11 +20,9 @@ const connectDB = async () => {
       maxPoolSize: 10,
       minPoolSize: 5,
     });
-    isConnected = true;
     console.log('Connected to MongoDB');
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    isConnected = false;
     throw error;
   }
 };
