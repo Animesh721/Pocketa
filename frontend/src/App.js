@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Setup from './pages/Setup';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/Dashboard-simple';
 import AddExpense from './pages/AddExpense';
 import AIAdvice from './pages/AIAdvice';
 import ManageEssentials from './pages/ManageEssentials';
