@@ -23,12 +23,12 @@
   "author": "Pocketa Team",
   "license": "MIT",
   "engines": {
-    "node": ">=16.0.0",
+    "node": "18.x",
     "npm": ">=8.0.0"
   },
   "dependencies": {
-    "mongodb": "^6.0.0",
-    "jsonwebtoken": "^9.0.0",
+    "mongodb": "^5.9.0",
+    "jsonwebtoken": "^9.0.2",
     "bcryptjs": "^2.4.3"
   },
   "devDependencies": {
