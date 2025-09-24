@@ -7,7 +7,7 @@ const User = require('../../backend/models/User');
 let isConnected = false;
 
 const connectDB = async () => {
-  if (isConnected) {
+  if (isConnected && mongoose.connection.readyState === 1) {
     return;
   }
 
@@ -15,11 +15,17 @@ const connectDB = async () => {
     await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 15000, // Increased timeout
+      socketTimeoutMS: 45000,
+      bufferMaxEntries: 0,
+      maxPoolSize: 10,
+      minPoolSize: 5,
     });
     isConnected = true;
     console.log('Connected to MongoDB');
   } catch (error) {
     console.error('MongoDB connection error:', error);
+    isConnected = false;
     throw error;
   }
 };
