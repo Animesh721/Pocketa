@@ -43,10 +43,13 @@ export default async function handler(req, res) {
   try {
     await connectDB();
 
-    const { username, email, password, confirmPassword } = req.body;
+    const { username, name, email, password, confirmPassword } = req.body;
+
+    // Use username as name if name is not provided
+    const userName = name || username;
 
     // Validation
-    if (!username || !email || !password) {
+    if (!userName || !email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -55,25 +58,19 @@ export default async function handler(req, res) {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({
-      $or: [{ email }, { username }]
-    });
+    const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       return res.status(400).json({
-        message: 'User with this email or username already exists'
+        message: 'User with this email already exists'
       });
     }
 
-    // Hash password
-    const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Create user
+    // Create user (let the model handle password hashing)
     const user = new User({
-      username,
+      name: userName,
       email,
-      password: hashedPassword
+      password // The model will hash this automatically
     });
 
     await user.save();
@@ -90,7 +87,7 @@ export default async function handler(req, res) {
       token,
       user: {
         id: user._id,
-        username: user.username,
+        name: user.name,
         email: user.email
       }
     });

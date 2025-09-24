@@ -56,8 +56,8 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Check password using the model method
+    const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -74,7 +74,7 @@ export default async function handler(req, res) {
       token,
       user: {
         id: user._id,
-        username: user.username,
+        name: user.name,
         email: user.email
       }
     });
