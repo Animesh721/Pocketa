@@ -19,7 +19,6 @@ export default async function handler(req, res) {
   try {
     // Disable mongoose buffering to prevent timeout issues
     mongoose.set('bufferCommands', false);
-    mongoose.set('bufferMaxEntries', 0);
 
     // Use the exact same connection pattern that works in mongodb-test
     const connectionOptions = {
