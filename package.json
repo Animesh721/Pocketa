@@ -1,0 +1,31 @@
+{
+  "name": "pocketa",
+  "version": "1.0.0",
+  "description": "AI-Powered Student Finance Management App",
+  "scripts": {
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm start\"",
+    "install-deps": "cd backend && npm install && cd ../frontend && npm install",
+    "heroku-postbuild": "cd frontend && npm install && npm run build",
+    "railway-build": "cd frontend && npm install && npm run build",
+    "vercel-build": "cd frontend && npm install && npm run build"
+  },
+  "keywords": [
+    "finance",
+    "student",
+    "allowance",
+    "tracker",
+    "ai",
+    "pwa"
+  ],
+  "author": "Pocketa Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

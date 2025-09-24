@@ -13,7 +13,13 @@ const reportsRoutes = require('./routes/reports');
 
 const app = express();
 
-app.use(cors());
+// Configure CORS for production
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/pocketa', {
