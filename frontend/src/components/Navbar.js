@@ -40,13 +40,11 @@ const Navbar = () => {
       console.log('beforeinstallprompt event fired');
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallButton(true);
     };
 
     const handleAppInstalled = (e) => {
       console.log('App installed successfully');
       setDeferredPrompt(null);
-      setShowInstallButton(false);
       // Optionally show success message
       setTimeout(() => {
         alert('🎉 Pocketa is now installed! You can access it from your home screen.');
@@ -61,10 +59,9 @@ const Navbar = () => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     if (isStandalone) {
       console.log('App is already installed');
-      setShowInstallButton(false);
     } else {
-      // Show install button even if prompt not available yet
-      setShowInstallButton(true);
+      // Install prompt will be available when needed
+      console.log('App not installed, install prompt will be shown when available');
     }
 
     // Debug info
@@ -118,7 +115,6 @@ const Navbar = () => {
 
       if (outcome === 'accepted') {
         setDeferredPrompt(null);
-        setShowInstallButton(false);
         // Show success message
         setTimeout(() => {
           alert('🎉 Pocketa installed successfully! Check your home screen.');
