@@ -75,11 +75,22 @@ export default async function handler(req, res) {
 
     return res.json({
       currentBalance: user.currentBalance || 0,
-      totalEssentials,
+      lastAllowanceAmount: user.lastAllowanceAmount || 0,
+      essentials: {
+        spent: totalSpentThisMonth,
+        budget: totalEssentials,
+        remaining: Math.max(0, totalEssentials - totalSpentThisMonth)
+      },
       totalSpentThisMonth,
+      totalEssentials,
       essentialsCount: userEssentials.length,
       transactionsCount: recentTransactions.length,
-      lastAllowanceAmount: user.lastAllowanceAmount || 0
+      // Add current period for dashboard display
+      currentPeriod: {
+        start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+        end: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+        type: 'monthly'
+      }
     });
 
   } catch (error) {
