@@ -187,7 +187,7 @@ const ExpenseReport = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchReportData();
