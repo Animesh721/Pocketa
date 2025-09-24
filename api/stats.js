@@ -86,6 +86,7 @@ export default async function handler(req, res) {
         budget: 0, // Extra budget if any
         remaining: 0
       },
+      totalSpent: totalSpentThisMonth, // Total spent this month
       totalSpentThisMonth,
       totalEssentials,
       essentialsCount: userEssentials.length,

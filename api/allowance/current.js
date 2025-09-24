@@ -62,7 +62,9 @@ export default async function handler(req, res) {
       currentTopup: {
         amount: user.lastAllowanceAmount || 0,
         spent: 0, // How much of current topup has been spent
-        remaining: user.currentBalance || 0
+        remaining: user.currentBalance || 0,
+        originalAmount: user.lastAllowanceAmount || 0,
+        carryOverAmount: 0 // Amount carried over from previous period
       }
     });
 
