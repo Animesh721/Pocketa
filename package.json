@@ -26,6 +26,11 @@
     "node": ">=16.0.0",
     "npm": ">=8.0.0"
   },
+  "dependencies": {
+    "mongodb": "^6.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "bcryptjs": "^2.4.3"
+  },
   "devDependencies": {
     "concurrently": "^8.2.0"
   }
