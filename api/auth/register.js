@@ -53,7 +53,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    if (password !== confirmPassword) {
+    if (confirmPassword && password !== confirmPassword) {
       return res.status(400).json({ message: 'Passwords do not match' });
     }
 

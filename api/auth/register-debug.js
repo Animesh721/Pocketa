@@ -58,8 +58,26 @@ export default async function handler(req, res) {
       });
     }
 
-    if (password !== confirmPassword) {
-      return res.status(400).json({ message: 'Passwords do not match' });
+    // Debug password comparison
+    console.log('🔍 Password comparison debug:', {
+      password: password,
+      confirmPassword: confirmPassword,
+      passwordType: typeof password,
+      confirmPasswordType: typeof confirmPassword,
+      passwordLength: password?.length,
+      confirmPasswordLength: confirmPassword?.length,
+      areEqual: password === confirmPassword
+    });
+
+    if (confirmPassword && password !== confirmPassword) {
+      return res.status(400).json({
+        message: 'Passwords do not match',
+        debug: {
+          passwordProvided: !!password,
+          confirmPasswordProvided: !!confirmPassword,
+          passwordsMatch: password === confirmPassword
+        }
+      });
     }
 
     console.log('✅ Validation passed');
