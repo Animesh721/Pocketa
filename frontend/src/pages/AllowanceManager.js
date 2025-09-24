@@ -186,7 +186,7 @@ const AllowanceManager = () => {
             <div>
               <p className="text-sm font-medium text-slate-400 mb-2">Available Balance</p>
               <p className="text-2xl font-semibold text-white">
-                ₹{currentTopup ? currentTopup.remaining.toLocaleString() : '0'}
+                ₹{currentTopup ? (currentTopup.remaining || 0).toLocaleString() : '0'}
               </p>
             </div>
           </div>
@@ -230,7 +230,7 @@ const AllowanceManager = () => {
                     <p className="text-xs text-green-400 font-medium mb-1">Includes Carry-over</p>
                     <div className="flex justify-between text-xs text-green-300">
                       <span>New: ₹{(currentTopup.originalAmount || 0).toLocaleString()}</span>
-                      <span>+ Previous: ₹{currentTopup.carryOverAmount.toLocaleString()}</span>
+                      <span>+ Previous: ₹{(currentTopup.carryOverAmount || 0).toLocaleString()}</span>
                     </div>
                   </div>
                 )}
@@ -446,7 +446,7 @@ const AllowanceManager = () => {
                         <div className="flex items-center space-x-2">
                           <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"></div>
                           <p className="text-xl sm:text-2xl font-bold text-white truncate">
-                            ₹{topup.amount.toLocaleString()}
+                            ₹{(topup.amount || 0).toLocaleString()}
                           </p>
                         </div>
 
@@ -503,8 +503,8 @@ const AllowanceManager = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                         </div>
-                        <p className="text-base sm:text-lg font-bold text-green-400 truncate">₹{(topup.amount - topup.spent).toLocaleString()}</p>
-                        <p className="text-xs text-green-300 truncate">{((((topup.amount - topup.spent) / topup.amount) * 100) || 0).toFixed(1)}% remaining</p>
+                        <p className="text-base sm:text-lg font-bold text-green-400 truncate">₹{((topup.amount || 0) - (topup.spent || 0)).toLocaleString()}</p>
+                        <p className="text-xs text-green-300 truncate">{topup.amount > 0 ? ((((topup.amount || 0) - (topup.spent || 0)) / topup.amount) * 100).toFixed(1) : 0}% remaining</p>
                       </div>
 
                       <div className="bg-slate-700/30 rounded-lg p-3 sm:p-4 border border-slate-600/50">
@@ -514,8 +514,8 @@ const AllowanceManager = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                           </svg>
                         </div>
-                        <p className="text-base sm:text-lg font-bold text-slate-300 truncate">₹{topup.spent.toLocaleString()}</p>
-                        <p className="text-xs text-slate-400 truncate">{(((topup.spent / topup.amount) * 100) || 0).toFixed(1)}% spent</p>
+                        <p className="text-base sm:text-lg font-bold text-slate-300 truncate">₹{(topup.spent || 0).toLocaleString()}</p>
+                        <p className="text-xs text-slate-400 truncate">{topup.amount > 0 ? (((topup.spent || 0) / topup.amount) * 100).toFixed(1) : 0}% spent</p>
                       </div>
                     </div>
 
@@ -523,12 +523,12 @@ const AllowanceManager = () => {
                     <div className="mt-4">
                       <div className="flex justify-between text-xs text-slate-300 mb-1">
                         <span>Budget Utilization</span>
-                        <span>{(((topup.spent / topup.amount) * 100) || 0).toFixed(1)}%</span>
+                        <span>{topup.amount > 0 ? (((topup.spent || 0) / topup.amount) * 100).toFixed(1) : 0}%</span>
                       </div>
                       <div className="w-full bg-slate-600 rounded-full h-2 overflow-hidden">
                         <div
                           className="h-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-700 ease-out"
-                          style={{ width: `${Math.min((topup.spent / topup.amount) * 100, 100)}%` }}
+                          style={{ width: `${topup.amount > 0 ? Math.min(((topup.spent || 0) / topup.amount) * 100, 100) : 0}%` }}
                         ></div>
                       </div>
                     </div>
@@ -582,7 +582,7 @@ const AllowanceManager = () => {
                               <span className="text-sm text-slate-300 font-medium truncate">{expense.description}</span>
                             </div>
                             <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-                              <span className="text-sm font-bold text-white">₹{expense.amount.toLocaleString()}</span>
+                              <span className="text-sm font-bold text-white">₹{(expense.amount || 0).toLocaleString()}</span>
                               <svg className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                               </svg>
