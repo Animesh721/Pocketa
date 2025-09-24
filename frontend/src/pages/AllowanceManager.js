@@ -30,7 +30,7 @@ const AllowanceManager = () => {
         axios.get('/api/allowance/current')
       ]);
 
-      setAllowanceHistory(historyResponse.data);
+      setAllowanceHistory(historyResponse.data.history || []);
       setCurrentTopup(currentResponse.data.hasActiveAllowance ? currentResponse.data.currentTopup : null);
       setError('');
     } catch (error) {
