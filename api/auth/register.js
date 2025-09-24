@@ -2,31 +2,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Import User model
-const User = require('../../backend/models/User');
-
-// Connect to MongoDB - simplified approach
-const connectDB = async () => {
-  if (mongoose.connection.readyState === 1) {
-    return;
-  }
-
-  try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 15000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-      minPoolSize: 5,
-    });
-    console.log('Connected to MongoDB');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    throw error;
-  }
-};
-
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -42,12 +17,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Force close any existing connection first
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.connection.close();
-    }
+    // Use the exact same connection pattern that works in mongodb-test
+    const connectionOptions = {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 15000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      minPoolSize: 5,
+    };
 
-    await connectDB();
+    console.log('Attempting MongoDB connection...');
+    await mongoose.connect(process.env.MONGODB_URI, connectionOptions);
+    console.log('MongoDB connection successful');
+
+    // Import User model after connection
+    const User = require('../../backend/models/User');
 
     const { username, name, email, password, confirmPassword } = req.body;
 
