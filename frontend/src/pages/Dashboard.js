@@ -6,7 +6,11 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import axios from 'axios';
 
 const Dashboard = () => {
+  console.log('🚀 Dashboard component initializing...');
+
   const { user } = useAuth();
+  console.log('👤 User from auth context:', user);
+
   const [stats, setStats] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [currentAllowance, setCurrentAllowance] = useState(null);
@@ -14,6 +18,7 @@ const Dashboard = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    console.log('📊 Dashboard useEffect triggered');
     fetchDashboardData();
   }, []);
 
@@ -50,6 +55,7 @@ const Dashboard = () => {
   };
 
   const formatPeriodDisplay = () => {
+    console.log('📅 formatPeriodDisplay called, stats:', stats);
     if (!stats?.currentPeriod) return '';
 
     const startDate = new Date(stats.currentPeriod.start);
@@ -63,11 +69,15 @@ const Dashboard = () => {
     }
   };
 
+  console.log('🔍 Dashboard render state:', { loading, error, stats: !!stats, user: !!user });
+
   if (loading) {
+    console.log('⏳ Showing loading spinner');
     return <LoadingSpinner />;
   }
 
   if (error) {
+    console.log('❌ Showing error screen:', error);
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-600/50 p-8 max-w-md w-full">
@@ -91,8 +101,17 @@ const Dashboard = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+  console.log('✅ Rendering main dashboard content');
+  console.log('📊 Final render data:', {
+    statsExists: !!stats,
+    userExists: !!user,
+    statsKeys: stats ? Object.keys(stats) : 'null',
+    userKeys: user ? Object.keys(user) : 'null'
+  });
+
+  try {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header Section */}
       <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border-b border-slate-700/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -278,6 +297,24 @@ const Dashboard = () => {
       </div>
     </div>
   );
+  } catch (renderError) {
+    console.error('💥 Dashboard render error:', renderError);
+    console.error('💥 Error stack:', renderError.stack);
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="bg-red-900/20 border border-red-500 rounded-lg p-6 max-w-md">
+          <h3 className="text-red-400 font-bold mb-2">Dashboard Render Error</h3>
+          <p className="text-red-300 text-sm">{renderError.message}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-red-600 text-white px-4 py-2 rounded"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default Dashboard;
