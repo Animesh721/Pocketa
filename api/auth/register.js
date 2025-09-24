@@ -42,6 +42,11 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Force close any existing connection first
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.connection.close();
+    }
+
     await connectDB();
 
     const { username, name, email, password, confirmPassword } = req.body;
@@ -99,5 +104,10 @@ export default async function handler(req, res) {
       message: 'Server error during registration',
       error: error.message
     });
+  } finally {
+    // Always close the connection after the operation
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.connection.close();
+    }
   }
 }
