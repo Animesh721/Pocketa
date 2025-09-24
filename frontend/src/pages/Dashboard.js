@@ -29,6 +29,8 @@ const Dashboard = () => {
       ]);
 
       console.log('Dashboard responses received:', { statsResponse, transactionsResponse, allowanceResponse });
+      console.log('Stats data structure:', statsResponse.data);
+      console.log('Allowance data structure:', allowanceResponse.data);
 
       setStats(statsResponse.data);
       setTransactions(transactionsResponse.data.transactions || []);
@@ -211,9 +213,9 @@ const Dashboard = () => {
               <div>
                 <h3 className="text-sm font-medium text-slate-300 mb-2">Essentials</h3>
                 <p className="text-3xl font-bold text-white mb-2">
-                  ₹{stats.essentials.spent.toLocaleString()}
+                  ₹{(stats.essentials?.spent || 0).toLocaleString()}
                 </p>
-                <p className="text-sm text-slate-400">of ₹{stats.essentials.budget.toLocaleString()} budgeted</p>
+                <p className="text-sm text-slate-400">of ₹{(stats.essentials?.budget || 0).toLocaleString()} budgeted</p>
               </div>
             </div>
 
@@ -225,7 +227,7 @@ const Dashboard = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                 </div>
-                {stats.extra.spent > 0 && (
+                {(stats.extra?.spent || 0) > 0 && (
                   <span className="text-xs font-medium text-orange-400 bg-orange-900/30 px-2 py-1 rounded-full">
                     Active
                   </span>
@@ -234,7 +236,7 @@ const Dashboard = () => {
               <div>
                 <h3 className="text-sm font-medium text-slate-300 mb-2">Extra Spending</h3>
                 <p className="text-3xl font-bold text-white mb-2">
-                  ₹{stats.extra.spent.toLocaleString()}
+                  ₹{(stats.extra?.spent || 0).toLocaleString()}
                 </p>
                 <p className="text-sm text-slate-400">This period</p>
               </div>
@@ -252,7 +254,7 @@ const Dashboard = () => {
               <div>
                 <h3 className="text-sm font-medium text-slate-300 mb-2">Total Spent</h3>
                 <p className="text-3xl font-bold text-white mb-2">
-                  ₹{stats.totalSpent.toLocaleString()}
+                  ₹{(stats.totalSpent || 0).toLocaleString()}
                 </p>
                 <p className="text-sm text-slate-400">All categories</p>
               </div>
