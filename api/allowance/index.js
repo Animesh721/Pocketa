@@ -42,7 +42,9 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
       // Create new allowance/deposit
-      const { amount, frequency, description } = req.body;
+      const { amount, description, receivedDate } = req.body;
+
+      console.log('Received deposit request:', { amount, description, receivedDate });
 
       // Validation
       if (!amount || parseFloat(amount) <= 0) {
@@ -58,8 +60,8 @@ export default async function handler(req, res) {
       const newAllowance = {
         userId,
         amount: allowanceAmount,
-        frequency: frequency || 'monthly',
         description: description || 'Allowance deposit',
+        receivedDate: receivedDate ? new Date(receivedDate) : new Date(),
         createdAt: new Date(),
         updatedAt: new Date()
       };
