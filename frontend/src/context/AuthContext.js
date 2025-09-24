@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      const response = await axios.post('/api/auth/register', { name, email, password });
+      const response = await axios.post('/api/auth/register-native', { name, email, password });
       const { token, user } = response.data;
 
       localStorage.setItem('token', token);
