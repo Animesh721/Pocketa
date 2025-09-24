@@ -98,10 +98,6 @@ const ExpenseReport = () => {
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
 
-  useEffect(() => {
-    fetchReportData();
-  }, [fetchReportData]);
-
   const fetchReportData = useCallback(async () => {
     try {
       setLoading(true);
@@ -192,6 +188,10 @@ const ExpenseReport = () => {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchReportData();
+  }, [fetchReportData]);
 
   const downloadPDF = async () => {
     try {
