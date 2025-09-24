@@ -13,13 +13,6 @@ const ExpenseChart = ({ data }) => {
   // Add null/undefined check
   if (!data || typeof data !== 'object') {
     console.log('⚠️ ExpenseChart: No data provided, using empty object');
-    const emptyData = {};
-    const chartData = Object.entries(emptyData).map(([category, amount]) => ({
-      name: category,
-      value: amount,
-      color: COLORS[category] || '#6b7280'
-    }));
-    const totalSpent = 0;
 
     return (
       <div className="card">
