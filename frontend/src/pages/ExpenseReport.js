@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -100,9 +100,9 @@ const ExpenseReport = () => {
 
   useEffect(() => {
     fetchReportData();
-  }, []);
+  }, [fetchReportData]);
 
-  const fetchReportData = async () => {
+  const fetchReportData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -111,11 +111,10 @@ const ExpenseReport = () => {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - 30);
 
-      const [transactionsResponse, essentialsResponse, allowanceResponse, statsResponse] = await Promise.all([
+      const [transactionsResponse, essentialsResponse, allowanceResponse] = await Promise.all([
         axios.get(`/api/transactions?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&limit=100`),
         axios.get('/api/user/settings'),
-        axios.get('/api/allowance'),
-        axios.get('/api/stats')
+        axios.get('/api/allowance')
       ]);
 
       const transactions = transactionsResponse.data.transactions || [];
@@ -192,7 +191,7 @@ const ExpenseReport = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const downloadPDF = async () => {
     try {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import axios from 'axios';
 
 const ChatAdvisor = () => {
@@ -27,7 +27,7 @@ const ChatAdvisor = () => {
   const textareaRef = useRef(null);
 
   const currentConversation = conversations.find(c => c.id === currentConversationId);
-  const messages = currentConversation?.messages || [];
+  const messages = useMemo(() => currentConversation?.messages || [], [currentConversation]);
 
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {

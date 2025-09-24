@@ -9,7 +9,6 @@ const Navbar = () => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallButton, setShowInstallButton] = useState(false);
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const hamburgerRef = useRef(null);

@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ChatAdvisor from '../components/ChatAdvisor';
-import MonthlyAnalysis from '../components/MonthlyAnalysis';
 import AllowancePrediction from '../components/AllowancePrediction';
 import axios from 'axios';
 
 const AIAdvice = () => {
-  const [advice, setAdvice] = useState('');
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -20,7 +18,6 @@ const AIAdvice = () => {
     try {
       setLoading(true);
       const response = await axios.get('/api/advice');
-      setAdvice(response.data.advice);
       setSummary(response.data.summary);
       setError('');
     } catch (error) {
@@ -31,33 +28,6 @@ const AIAdvice = () => {
     }
   };
 
-  const formatAdvice = (text) => {
-    return text.split('\n').map((line, index) => {
-      if (line.trim() === '') return <br key={index} />;
-
-      if (line.match(/^\d+\./)) {
-        return (
-          <div key={index} className="mb-3">
-            <p className="font-medium text-white">{line}</p>
-          </div>
-        );
-      }
-
-      if (line.includes('Here are some tips') || line.includes('Tips:')) {
-        return (
-          <h4 key={index} className="text-lg font-semibold text-white mb-4">
-            {line}
-          </h4>
-        );
-      }
-
-      return (
-        <p key={index} className="mb-2 text-slate-300">
-          {line}
-        </p>
-      );
-    });
-  };
 
   if (loading) {
     return (

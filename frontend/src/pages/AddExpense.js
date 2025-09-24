@@ -197,31 +197,6 @@ const AddExpense = () => {
     }
   };
 
-  const getCategoryColor = (category) => {
-    switch (category) {
-      case 'Allowance':
-        return 'from-green-500 to-emerald-600';
-      case 'Essentials':
-        return 'from-blue-500 to-indigo-600';
-      case 'Extra':
-        return 'from-purple-500 to-pink-600';
-      default:
-        return 'from-gray-500 to-gray-600';
-    }
-  };
-
-  const getCategoryDescription = () => {
-    switch (formData.category) {
-      case 'Allowance':
-        return 'Regular spending that will be deducted from your current allowance balance';
-      case 'Essentials':
-        return 'Fixed monthly expenses like rent, utilities, groceries, etc.';
-      case 'Extra':
-        return 'Special one-time purchases outside your regular budget';
-      default:
-        return '';
-    }
-  };
 
   if (showConfirmation) {
     return (
