@@ -1,30 +1,6 @@
-const mongoose = require('mongoose');
+const { MongoClient } = require('mongodb');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
-// Import User model
-const User = require('../../backend/models/User');
-
-// Connect to MongoDB
-let isConnected = false;
-
-const connectDB = async () => {
-  if (isConnected) {
-    return;
-  }
-
-  try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    isConnected = true;
-    console.log('Connected to MongoDB');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    throw error;
-  }
-};
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -40,8 +16,23 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
+  let client;
+
   try {
-    await connectDB();
+    // Use native MongoDB driver with same URI that works
+    console.log('Connecting to MongoDB with native driver for login...');
+    client = new MongoClient(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 15000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      minPoolSize: 5,
+    });
+
+    await client.connect();
+    console.log('Connected to MongoDB successfully');
+
+    const db = client.db('pocketa');
+    const users = db.collection('users');
 
     const { email, password } = req.body;
 
@@ -50,17 +41,27 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
+    console.log('Looking for user with email:', email);
+
     // Find user
-    const user = await User.findOne({ email });
+    const user = await users.findOne({ email: email.toLowerCase().trim() });
+
     if (!user) {
+      console.log('User not found');
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Check password using the model method
-    const isPasswordValid = await user.comparePassword(password);
+    console.log('User found, checking password...');
+
+    // Check password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
     if (!isPasswordValid) {
+      console.log('Invalid password');
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+
+    console.log('Password valid, generating token...');
 
     // Generate JWT token
     const token = jwt.sign(
@@ -68,6 +69,8 @@ export default async function handler(req, res) {
       process.env.JWT_SECRET || 'fallback-secret',
       { expiresIn: '24h' }
     );
+
+    console.log('Login successful for user:', user.email);
 
     res.status(200).json({
       message: 'Login successful',
@@ -85,5 +88,9 @@ export default async function handler(req, res) {
       message: 'Server error during login',
       error: error.message
     });
+  } finally {
+    if (client) {
+      await client.close();
+    }
   }
 }
