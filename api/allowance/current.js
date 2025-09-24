@@ -58,7 +58,12 @@ export default async function handler(req, res) {
       lastAllowanceAmount: user.lastAllowanceAmount || 0,
       canRequestMore: true, // This can be enhanced later with business logic
       nextAllowanceDate: null, // This can be calculated based on frequency
-      status: 'active'
+      status: 'active',
+      currentTopup: {
+        amount: user.lastAllowanceAmount || 0,
+        spent: 0, // How much of current topup has been spent
+        remaining: user.currentBalance || 0
+      }
     });
 
   } catch (error) {
