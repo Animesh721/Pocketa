@@ -23,8 +23,15 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: 'No token provided' });
     }
 
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({
+        message: 'Authentication configuration missing',
+        error: 'JWT_SECRET not set'
+      });
+    }
+
     const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     userId = new ObjectId(decoded.userId);
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });
@@ -34,11 +41,17 @@ export default async function handler(req, res) {
 
   try {
     // Connect to MongoDB
+    // Optimized for Vercel serverless functions
+    if (!process.env.MONGODB_URI) {
+      return res.status(500).json({
+        message: 'Database configuration missing',
+        error: 'MONGODB_URI not set'
+      });
+    }
+
     client = new MongoClient(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 15000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-      minPoolSize: 5,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 5000,
     });
 
     await client.connect();
@@ -97,16 +110,27 @@ export default async function handler(req, res) {
       const result = await transactions.insertOne(newTransaction);
       console.log('Transaction inserted with ID:', result.insertedId);
 
-      // Update user's current balance (subtract expense from allowance balance)
-      // All expenses deduct from the allowance balance regardless of category
+      // Update user's current balance - only Allowance category expenses should deduct from allowance
       const users = db.collection('users');
-      await users.updateOne(
-        { _id: userId },
-        {
-          $inc: { currentBalance: -parseFloat(amount) },
-          $set: { updatedAt: new Date() }
-        }
-      );
+
+      // Only deduct from allowance balance if it's an allowance expense
+      if (category === 'Allowance') {
+        await users.updateOne(
+          { _id: userId },
+          {
+            $inc: { currentBalance: -parseFloat(amount) },
+            $set: { updatedAt: new Date() }
+          }
+        );
+        console.log(`Deducted ₹${amount} from allowance balance for ${category} expense`);
+      } else {
+        // For Essentials/Extra, just update timestamp (expense is tracked but doesn't affect allowance)
+        await users.updateOne(
+          { _id: userId },
+          { $set: { updatedAt: new Date() } }
+        );
+        console.log(`Tracked ₹${amount} ${category} expense without affecting allowance balance`);
+      }
 
       console.log('Updated user balance');
 

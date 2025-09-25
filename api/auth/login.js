@@ -19,13 +19,18 @@ export default async function handler(req, res) {
   let client;
 
   try {
-    // Use native MongoDB driver with same URI that works
+    // Optimized for Vercel serverless functions
     console.log('Connecting to MongoDB with native driver for login...');
+    if (!process.env.MONGODB_URI) {
+      return res.status(500).json({
+        message: 'Database configuration missing',
+        error: 'MONGODB_URI not set'
+      });
+    }
+
     client = new MongoClient(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 15000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-      minPoolSize: 5,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 5000,
     });
 
     await client.connect();
@@ -64,9 +69,16 @@ export default async function handler(req, res) {
     console.log('Password valid, generating token...');
 
     // Generate JWT token
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({
+        message: 'Authentication configuration missing',
+        error: 'JWT_SECRET not set'
+      });
+    }
+
     const token = jwt.sign(
       { userId: user._id, email: user.email },
-      process.env.JWT_SECRET || 'fallback-secret',
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 

@@ -23,8 +23,15 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: 'No token provided' });
     }
 
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({
+        message: 'Authentication configuration missing',
+        error: 'JWT_SECRET not set'
+      });
+    }
+
     const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     userId = new ObjectId(decoded.userId);
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });
@@ -34,11 +41,17 @@ export default async function handler(req, res) {
 
   try {
     // Connect to MongoDB
+    // Optimized for Vercel serverless functions
+    if (!process.env.MONGODB_URI) {
+      return res.status(500).json({
+        message: 'Database configuration missing',
+        error: 'MONGODB_URI not set'
+      });
+    }
+
     client = new MongoClient(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 15000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-      minPoolSize: 5,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 5000,
     });
 
     await client.connect();
@@ -86,12 +99,11 @@ export default async function handler(req, res) {
       monthlyTransactionsCount: monthlyTransactions.length
     });
 
-    // The user's currentBalance should be the source of truth
-    // It gets updated when: +allowance deposits, -allowance category expenses
-    const actualRemaining = Math.max(0, user.currentBalance || 0);
-
-    // For display purposes, show total monthly context
+    // Standardized balance calculation: monthly allowance deposits - allowance category spending
     const calculatedRemaining = Math.max(0, totalMonthlyAllowances - allowanceSpent);
+
+    // Use calculated balance as source of truth (handles any data inconsistencies)
+    const actualRemaining = calculatedRemaining;
 
     return res.json({
       currentBalance: actualRemaining,
