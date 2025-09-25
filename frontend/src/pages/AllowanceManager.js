@@ -234,6 +234,24 @@ const AllowanceManager = () => {
           </div>
         </div>
 
+        {/* Fix Balance Button - Prominent Location */}
+        <div className="bg-red-900/30 border border-red-600/50 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-red-300 font-medium mb-1">Balance Issues?</p>
+              <p className="text-xs text-red-400">Click here if your balance doesn't show ₹132 remaining (₹300 - ₹168)</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleFixBalance}
+              disabled={submitting}
+              className="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 disabled:opacity-50 font-medium"
+            >
+              {submitting ? 'Fixing...' : 'Fix Balance Now'}
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Current Status */}
         <div className="card">
