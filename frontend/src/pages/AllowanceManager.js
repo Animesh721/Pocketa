@@ -129,6 +129,23 @@ const AllowanceManager = () => {
     }
   };
 
+  const handleSetBalance = async () => {
+    try {
+      setSubmitting(true);
+      const response = await axios.post('/api/set-balance');
+      setSuccess(`Balance manually set! New balance: ₹${response.data.after}`);
+      console.log('Manual balance set:', response.data);
+      fetchAllowanceData(); // Refresh data
+      setTimeout(() => setSuccess(''), 5000);
+    } catch (error) {
+      console.error('Set balance error:', error);
+      setError(error.response?.data?.message || 'Failed to set balance');
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
       year: 'numeric',
@@ -238,16 +255,16 @@ const AllowanceManager = () => {
         <div className="bg-red-900/30 border border-red-600/50 rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-red-300 font-medium mb-1">Balance Issues?</p>
-              <p className="text-xs text-red-400">Click here if your balance doesn't show ₹132 remaining (₹300 - ₹168)</p>
+              <p className="text-red-300 font-medium mb-1">Balance Still Showing ₹300?</p>
+              <p className="text-xs text-red-400">It should show ₹132 (₹300 - ₹168). Click to fix manually.</p>
             </div>
             <button
               type="button"
-              onClick={handleFixBalance}
+              onClick={handleSetBalance}
               disabled={submitting}
-              className="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 disabled:opacity-50 font-medium"
+              className="bg-red-600 text-white py-3 px-6 rounded-md hover:bg-red-700 disabled:opacity-50 font-medium text-sm"
             >
-              {submitting ? 'Fixing...' : 'Fix Balance Now'}
+              {submitting ? 'Setting...' : 'Set Balance to ₹132'}
             </button>
           </div>
         </div>
