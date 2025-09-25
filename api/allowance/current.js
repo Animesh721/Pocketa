@@ -86,12 +86,12 @@ export default async function handler(req, res) {
       monthlyTransactionsCount: monthlyTransactions.length
     });
 
-    // Calculate the correct remaining balance based on total deposits vs total spending
-    const calculatedRemaining = Math.max(0, totalMonthlyAllowances - allowanceSpent);
+    // The user's currentBalance should be the source of truth
+    // It gets updated when: +allowance deposits, -allowance category expenses
+    const actualRemaining = Math.max(0, user.currentBalance || 0);
 
-    // If user.currentBalance doesn't match our calculation, use the calculated value
-    // This handles cases where old transactions messed up the balance
-    const actualRemaining = Math.max(calculatedRemaining, user.currentBalance || 0);
+    // For display purposes, show total monthly context
+    const calculatedRemaining = Math.max(0, totalMonthlyAllowances - allowanceSpent);
 
     return res.json({
       currentBalance: actualRemaining,

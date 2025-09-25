@@ -97,20 +97,15 @@ export default async function handler(req, res) {
       const result = await transactions.insertOne(newTransaction);
       console.log('Transaction inserted with ID:', result.insertedId);
 
-      // Update user's current balance only for Allowance category expenses
+      // Update user's current balance (subtract expense from allowance balance)
+      // All expenses deduct from the allowance balance regardless of category
       const users = db.collection('users');
-      const updateQuery = {
-        $set: { updatedAt: new Date() }
-      };
-
-      // Only deduct from currentBalance for Allowance category expenses
-      if (category === 'Allowance') {
-        updateQuery.$inc = { currentBalance: -parseFloat(amount) };
-      }
-
       await users.updateOne(
         { _id: userId },
-        updateQuery
+        {
+          $inc: { currentBalance: -parseFloat(amount) },
+          $set: { updatedAt: new Date() }
+        }
       );
 
       console.log('Updated user balance');
