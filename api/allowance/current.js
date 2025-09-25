@@ -75,7 +75,7 @@ export default async function handler(req, res) {
       currentTopup: {
         amount: user.lastAllowanceAmount || 0,
         spent: allowanceSpent,
-        remaining: Math.max(0, (user.lastAllowanceAmount || 0) - allowanceSpent),
+        remaining: Math.max(0, user.currentBalance || 0), // Use actual current balance, not just last deposit minus spent
         originalAmount: user.lastAllowanceAmount || 0,
         carryOverAmount: 0 // Amount carried over from previous period
       }
