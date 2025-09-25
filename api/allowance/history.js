@@ -67,8 +67,11 @@ export default async function handler(req, res) {
     const totalAllowanceSpent = allowanceTransactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
 
     // Enhance allowance history with spending data
+    // For now, we'll only track spending for the current month's allowances
+    // Historical tracking would require more complex date-based transaction matching
     const enhancedHistory = allowanceHistory.map((allowance, index) => {
-      // For the most recent allowance, show actual spending
+      // Only the most recent allowance should show actual spending
+      // Older allowances should show 0 spent to avoid inflating totals
       if (index === 0 && allowanceHistory.length > 0) {
         const spent = totalAllowanceSpent;
         const remaining = Math.max(0, allowance.amount - spent);
@@ -80,12 +83,13 @@ export default async function handler(req, res) {
             Math.floor((now - new Date(allowance.createdAt)) / (1000 * 60 * 60 * 24)) : null
         };
       }
-      // For older allowances, assume they were fully spent (this can be enhanced later)
+      // For older allowances, don't show any spending to avoid double-counting
+      // This prevents inflating the "total utilized" amount
       return {
         ...allowance,
-        spent: allowance.amount || 0,
-        remaining: 0,
-        daysLasted: 30 // Default assumption
+        spent: 0, // Don't assume historical spending
+        remaining: allowance.amount || 0, // Show full amount as remaining for historical records
+        daysLasted: null // Unknown for historical records
       };
     });
 
