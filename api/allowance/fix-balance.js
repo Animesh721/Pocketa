@@ -23,8 +23,15 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: 'No token provided' });
     }
 
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({
+        message: 'Authentication configuration missing',
+        error: 'JWT_SECRET not set'
+      });
+    }
+
     const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     userId = new ObjectId(decoded.userId);
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });
@@ -33,6 +40,14 @@ export default async function handler(req, res) {
   let client;
 
   try {
+    // Check MongoDB URI configuration
+    if (!process.env.MONGODB_URI) {
+      return res.status(500).json({
+        message: 'Database configuration missing',
+        error: 'MONGODB_URI not set'
+      });
+    }
+
     client = new MongoClient(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 15000,
       socketTimeoutMS: 45000,
@@ -56,18 +71,17 @@ export default async function handler(req, res) {
 
     const totalDeposits = monthlyAllowances.reduce((sum, a) => sum + a.amount, 0);
 
-    // Get all allowance category transactions this month
+    // Get ALL monthly transactions (all categories affect allowance balance)
     const transactions = db.collection('transactions');
-    const allowanceTransactions = await transactions.find({
+    const allTransactions = await transactions.find({
       userId,
-      createdAt: { $gte: startOfMonth },
-      category: 'Allowance'
+      createdAt: { $gte: startOfMonth }
     }).toArray();
 
-    const totalAllowanceSpent = allowanceTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalExpenses = allTransactions.reduce((sum, t) => sum + t.amount, 0);
 
-    // Calculate correct balance
-    const correctBalance = Math.max(0, totalDeposits - totalAllowanceSpent);
+    // Calculate correct balance: deposits - ALL expenses
+    const correctBalance = Math.max(0, totalDeposits - totalExpenses);
 
     // Update user's current balance to the correct value
     const users = db.collection('users');
@@ -92,11 +106,13 @@ export default async function handler(req, res) {
       after: {
         currentBalance: correctBalance,
         totalDeposits: totalDeposits,
-        totalAllowanceSpent: totalAllowanceSpent
+        totalExpenses: totalExpenses
       },
       calculation: {
-        deposits: monthlyAllowances.map(a => ({ amount: a.amount, date: a.createdAt })),
-        allowanceSpending: allowanceTransactions.map(t => ({ amount: t.amount, description: t.description, date: t.createdAt }))
+        deposits: monthlyAllowances.map(a => ({ amount: a.amount, date: a.createdAt, description: a.description })),
+        allExpenses: allTransactions.map(t => ({ amount: t.amount, description: t.description, date: t.createdAt, category: t.category })),
+        formula: 'deposits - all_expenses',
+        note: 'ALL expenses (any category) deduct from allowance balance'
       }
     });
 
