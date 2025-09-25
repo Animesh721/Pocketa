@@ -49,9 +49,31 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Manual fix: Set balance to 132 (300 - 168 = 132)
-    // This should be the correct balance based on your deposits and expenses
-    const correctBalance = 132;
+    // Calculate correct balance based on actual data
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Get monthly allowance deposits
+    const allowances = db.collection('allowances');
+    const monthlyAllowances = await allowances.find({
+      userId,
+      createdAt: { $gte: startOfMonth }
+    }).toArray();
+
+    const totalDeposits = monthlyAllowances.reduce((sum, a) => sum + a.amount, 0);
+
+    // Get monthly allowance category transactions only
+    const transactions = db.collection('transactions');
+    const allowanceTransactions = await transactions.find({
+      userId,
+      createdAt: { $gte: startOfMonth },
+      category: 'Allowance'
+    }).toArray();
+
+    const totalAllowanceSpent = allowanceTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+    // Calculate correct balance: deposits - allowance spending
+    const correctBalance = Math.max(0, totalDeposits - totalAllowanceSpent);
 
     console.log('Manual balance correction:', {
       userId: userId.toString(),
@@ -71,10 +93,25 @@ export default async function handler(req, res) {
     );
 
     return res.status(200).json({
-      message: 'Balance manually corrected to ₹132',
+      message: `Balance corrected to ₹${correctBalance}`,
       before: user.currentBalance,
       after: correctBalance,
-      note: 'This sets your balance to ₹300 (deposits) - ₹168 (expenses) = ₹132'
+      calculation: {
+        totalDeposits,
+        totalAllowanceSpent,
+        formula: 'deposits - allowance_spending',
+        note: 'Only Allowance category expenses deduct from allowance balance'
+      },
+      deposits: monthlyAllowances.map(a => ({
+        amount: a.amount,
+        date: a.createdAt,
+        description: a.description
+      })),
+      allowanceExpenses: allowanceTransactions.map(t => ({
+        amount: t.amount,
+        date: t.createdAt,
+        description: t.description
+      }))
     });
 
   } catch (error) {
