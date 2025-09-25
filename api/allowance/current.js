@@ -71,14 +71,13 @@ export default async function handler(req, res) {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Get monthly allowance spending
+    // Get ALL monthly spending (all categories affect allowance balance)
     const monthlyTransactions = await transactions.find({
       userId,
-      createdAt: { $gte: startOfMonth },
-      category: 'Allowance'
+      createdAt: { $gte: startOfMonth }
     }).toArray();
 
-    const allowanceSpent = monthlyTransactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
+    const totalSpent = monthlyTransactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
 
     // Get total allowance deposits this month
     const monthlyAllowances = await allowances.find({
@@ -93,14 +92,14 @@ export default async function handler(req, res) {
       userId: userId.toString(),
       userCurrentBalance: user.currentBalance,
       userLastAllowanceAmount: user.lastAllowanceAmount,
-      allowanceSpent: allowanceSpent,
+      totalSpent: totalSpent,
       totalMonthlyAllowances: totalMonthlyAllowances,
       monthlyAllowancesCount: monthlyAllowances.length,
       monthlyTransactionsCount: monthlyTransactions.length
     });
 
-    // Standardized balance calculation: monthly allowance deposits - allowance category spending
-    const calculatedRemaining = Math.max(0, totalMonthlyAllowances - allowanceSpent);
+    // Standardized balance calculation: monthly allowance deposits - ALL spending
+    const calculatedRemaining = Math.max(0, totalMonthlyAllowances - totalSpent);
 
     // Use calculated balance as source of truth (handles any data inconsistencies)
     const actualRemaining = calculatedRemaining;
@@ -114,7 +113,7 @@ export default async function handler(req, res) {
       hasActiveAllowance: totalMonthlyAllowances > 0,
       currentTopup: {
         amount: totalMonthlyAllowances || 0,
-        spent: allowanceSpent,
+        spent: totalSpent, // ALL expenses affect allowance
         remaining: actualRemaining,
         originalAmount: totalMonthlyAllowances || 0,
         carryOverAmount: 0
@@ -123,7 +122,7 @@ export default async function handler(req, res) {
         userCurrentBalance: user.currentBalance,
         calculatedRemaining: calculatedRemaining,
         totalMonthlyAllowances: totalMonthlyAllowances,
-        allowanceSpent: allowanceSpent
+        totalSpent: totalSpent
       }
     });
 

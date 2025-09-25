@@ -255,8 +255,8 @@ const AllowanceManager = () => {
         <div className="bg-red-900/30 border border-red-600/50 rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-red-300 font-medium mb-1">Balance Still Showing ₹300?</p>
-              <p className="text-xs text-red-400">It should show ₹132 (₹300 - ₹168). Click to fix manually.</p>
+              <p className="text-red-300 font-medium mb-1">Balance Not Correct?</p>
+              <p className="text-xs text-red-400">Should be: Deposits - ALL Expenses = Remaining. Click to recalculate.</p>
             </div>
             <button
               type="button"
@@ -264,7 +264,7 @@ const AllowanceManager = () => {
               disabled={submitting}
               className="bg-red-600 text-white py-3 px-6 rounded-md hover:bg-red-700 disabled:opacity-50 font-medium text-sm"
             >
-              {submitting ? 'Setting...' : 'Set Balance to ₹132'}
+              {submitting ? 'Calculating...' : 'Fix Balance Now'}
             </button>
           </div>
         </div>

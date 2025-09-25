@@ -110,27 +110,18 @@ export default async function handler(req, res) {
       const result = await transactions.insertOne(newTransaction);
       console.log('Transaction inserted with ID:', result.insertedId);
 
-      // Update user's current balance - only Allowance category expenses should deduct from allowance
+      // Update user's current balance - ALL expenses deduct from allowance balance
+      // Categories are for reporting/tracking only, not balance calculation
       const users = db.collection('users');
+      await users.updateOne(
+        { _id: userId },
+        {
+          $inc: { currentBalance: -parseFloat(amount) },
+          $set: { updatedAt: new Date() }
+        }
+      );
 
-      // Only deduct from allowance balance if it's an allowance expense
-      if (category === 'Allowance') {
-        await users.updateOne(
-          { _id: userId },
-          {
-            $inc: { currentBalance: -parseFloat(amount) },
-            $set: { updatedAt: new Date() }
-          }
-        );
-        console.log(`Deducted ₹${amount} from allowance balance for ${category} expense`);
-      } else {
-        // For Essentials/Extra, just update timestamp (expense is tracked but doesn't affect allowance)
-        await users.updateOne(
-          { _id: userId },
-          { $set: { updatedAt: new Date() } }
-        );
-        console.log(`Tracked ₹${amount} ${category} expense without affecting allowance balance`);
-      }
+      console.log(`Deducted ₹${amount} from allowance balance for ${category} expense`);
 
       console.log('Updated user balance');
 
