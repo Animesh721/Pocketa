@@ -51,12 +51,51 @@ export default async function handler(req, res) {
       .limit(50)
       .toArray();
 
+    // Get transactions to calculate spending for each allowance period
+    const transactions = db.collection('transactions');
+
+    // For now, we'll calculate monthly spending from allowance category transactions
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const allowanceTransactions = await transactions.find({
+      userId,
+      category: 'Allowance',
+      createdAt: { $gte: startOfMonth }
+    }).toArray();
+
+    const totalAllowanceSpent = allowanceTransactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
+
+    // Enhance allowance history with spending data
+    const enhancedHistory = allowanceHistory.map((allowance, index) => {
+      // For the most recent allowance, show actual spending
+      if (index === 0 && allowanceHistory.length > 0) {
+        const spent = totalAllowanceSpent;
+        const remaining = Math.max(0, allowance.amount - spent);
+        return {
+          ...allowance,
+          spent: spent,
+          remaining: remaining,
+          daysLasted: spent >= allowance.amount ?
+            Math.floor((now - new Date(allowance.createdAt)) / (1000 * 60 * 60 * 24)) : null
+        };
+      }
+      // For older allowances, assume they were fully spent (this can be enhanced later)
+      return {
+        ...allowance,
+        spent: allowance.amount || 0,
+        remaining: 0,
+        daysLasted: 30 // Default assumption
+      };
+    });
+
     // Calculate totals
     const totalAllowances = allowanceHistory.reduce((sum, allowance) => sum + allowance.amount, 0);
 
     return res.json({
-      history: allowanceHistory,
+      history: enhancedHistory,
       totalAllowances,
+      totalSpent: totalAllowanceSpent,
       count: allowanceHistory.length
     });
 

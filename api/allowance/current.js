@@ -52,17 +52,30 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // For now, return basic allowance info based on user's current balance
+    // Calculate spent amount from transactions
+    const transactions = db.collection('transactions');
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const monthlyTransactions = await transactions.find({
+      userId,
+      createdAt: { $gte: startOfMonth },
+      category: 'Allowance'
+    }).toArray();
+
+    const allowanceSpent = monthlyTransactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
+
     return res.json({
       currentBalance: user.currentBalance || 0,
       lastAllowanceAmount: user.lastAllowanceAmount || 0,
       canRequestMore: true, // This can be enhanced later with business logic
       nextAllowanceDate: null, // This can be calculated based on frequency
       status: 'active',
+      hasActiveAllowance: (user.lastAllowanceAmount || 0) > 0,
       currentTopup: {
         amount: user.lastAllowanceAmount || 0,
-        spent: 0, // How much of current topup has been spent
-        remaining: user.currentBalance || 0,
+        spent: allowanceSpent,
+        remaining: Math.max(0, (user.lastAllowanceAmount || 0) - allowanceSpent),
         originalAmount: user.lastAllowanceAmount || 0,
         carryOverAmount: 0 // Amount carried over from previous period
       }

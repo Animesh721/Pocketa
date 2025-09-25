@@ -71,18 +71,37 @@ export default async function handler(req, res) {
       createdAt: { $gte: startOfMonth }
     }).toArray();
 
+    // Calculate spending by category
+    const spendingByCategory = {
+      'Allowance': 0,
+      'Essentials': 0,
+      'Extra': 0
+    };
+
+    monthlyTransactions.forEach(transaction => {
+      const category = transaction.category || 'Allowance';
+      if (spendingByCategory.hasOwnProperty(category)) {
+        spendingByCategory[category] += transaction.amount || 0;
+      }
+    });
+
     const totalSpentThisMonth = monthlyTransactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
 
     return res.json({
       currentBalance: user.currentBalance || 0,
       lastAllowanceAmount: user.lastAllowanceAmount || 0,
+      allowance: {
+        spent: spendingByCategory['Allowance'],
+        budget: user.lastAllowanceAmount || 0,
+        remaining: Math.max(0, (user.lastAllowanceAmount || 0) - spendingByCategory['Allowance'])
+      },
       essentials: {
-        spent: totalSpentThisMonth,
+        spent: spendingByCategory['Essentials'],
         budget: totalEssentials,
-        remaining: Math.max(0, totalEssentials - totalSpentThisMonth)
+        remaining: Math.max(0, totalEssentials - spendingByCategory['Essentials'])
       },
       extra: {
-        spent: 0, // Extra spending beyond essentials
+        spent: spendingByCategory['Extra'],
         budget: 0, // Extra budget if any
         remaining: 0
       },
@@ -92,11 +111,7 @@ export default async function handler(req, res) {
       essentialsCount: userEssentials.length,
       transactionsCount: recentTransactions.length,
       // Add category breakdown for ExpenseChart
-      categoryBreakdown: {
-        'Essentials': totalSpentThisMonth,
-        'Extra': 0,
-        'Allowance': user.lastAllowanceAmount || 0
-      },
+      categoryBreakdown: spendingByCategory,
       // Add current period for dashboard display
       currentPeriod: {
         start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
