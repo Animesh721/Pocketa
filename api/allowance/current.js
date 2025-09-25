@@ -52,11 +52,13 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Calculate spent amount from transactions
+    // Calculate spent amount and total deposits for current month
     const transactions = db.collection('transactions');
+    const allowances = db.collection('allowances');
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
+    // Get monthly allowance spending
     const monthlyTransactions = await transactions.find({
       userId,
       createdAt: { $gte: startOfMonth },
@@ -64,6 +66,14 @@ export default async function handler(req, res) {
     }).toArray();
 
     const allowanceSpent = monthlyTransactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
+
+    // Get total allowance deposits this month
+    const monthlyAllowances = await allowances.find({
+      userId,
+      createdAt: { $gte: startOfMonth }
+    }).toArray();
+
+    const totalMonthlyAllowances = monthlyAllowances.reduce((sum, allowance) => sum + (allowance.amount || 0), 0);
 
     return res.json({
       currentBalance: user.currentBalance || 0,
@@ -73,10 +83,10 @@ export default async function handler(req, res) {
       status: 'active',
       hasActiveAllowance: (user.lastAllowanceAmount || 0) > 0,
       currentTopup: {
-        amount: user.lastAllowanceAmount || 0,
+        amount: totalMonthlyAllowances || 0, // Total deposits this month, not just last deposit
         spent: allowanceSpent,
-        remaining: Math.max(0, user.currentBalance || 0), // Use actual current balance, not just last deposit minus spent
-        originalAmount: user.lastAllowanceAmount || 0,
+        remaining: Math.max(0, user.currentBalance || 0), // Use actual current balance
+        originalAmount: totalMonthlyAllowances || 0, // Total deposits this month
         carryOverAmount: 0 // Amount carried over from previous period
       }
     });
