@@ -176,15 +176,15 @@ const Dashboard = () => {
               </div>
               <div>
                 <h3 className="text-sm font-medium text-slate-300 mb-2">Current Allowance</h3>
-                {currentAllowance?.hasActiveAllowance ? (
+                {currentAllowance?.hasActiveAllowance || (currentAllowance?.currentBalance > 0) ? (
                   <div>
                     <p className="text-3xl font-bold text-white mb-2">
-                      ₹{currentAllowance.currentTopup.remaining.toLocaleString()}
+                      ₹{(currentAllowance?.currentTopup?.remaining || currentAllowance?.currentBalance || 0).toLocaleString()}
                     </p>
                     <p className="text-sm text-slate-400 mb-2">Available Balance</p>
 
                     {/* Show carry-over info if applicable */}
-                    {currentAllowance.currentTopup.carryOverAmount > 0 && (
+                    {currentAllowance?.currentTopup?.carryOverAmount > 0 && (
                       <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-2 mb-4">
                         <p className="text-xs text-green-300 font-medium mb-1">
                           Includes Carry-over
@@ -196,24 +196,26 @@ const Dashboard = () => {
                       </div>
                     )}
 
-                    {/* Progress Bar */}
-                    <div>
-                      <div className="flex justify-between text-xs text-slate-300 mb-2">
-                        <span>Spent: ₹{currentAllowance.currentTopup.spent.toLocaleString()}</span>
-                        <span>{(currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining) > 0 ? ((currentAllowance.currentTopup.spent / (currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining)) * 100).toFixed(0) : 0}%</span>
+                    {/* Progress Bar - only show if we have currentTopup data */}
+                    {currentAllowance?.currentTopup && (
+                      <div>
+                        <div className="flex justify-between text-xs text-slate-300 mb-2">
+                          <span>Spent: ₹{currentAllowance.currentTopup.spent.toLocaleString()}</span>
+                          <span>{(currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining) > 0 ? ((currentAllowance.currentTopup.spent / (currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining)) * 100).toFixed(0) : 0}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className={`progress-fill ${
+                              (currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining) > 0 && (currentAllowance.currentTopup.spent / (currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining)) >= 0.9 ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                              (currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining) > 0 && (currentAllowance.currentTopup.spent / (currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining)) >= 0.7 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                            }`}
+                            style={{
+                              width: `${(currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining) > 0 ? Math.min((currentAllowance.currentTopup.spent / (currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining)) * 100, 100) : 0}%`
+                            }}
+                          ></div>
+                        </div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className={`progress-fill ${
-                            (currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining) > 0 && (currentAllowance.currentTopup.spent / (currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining)) >= 0.9 ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                            (currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining) > 0 && (currentAllowance.currentTopup.spent / (currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining)) >= 0.7 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-blue-600'
-                          }`}
-                          style={{
-                            width: `${(currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining) > 0 ? Math.min((currentAllowance.currentTopup.spent / (currentAllowance.currentTopup.spent + currentAllowance.currentTopup.remaining)) * 100, 100) : 0}%`
-                          }}
-                        ></div>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-4">
