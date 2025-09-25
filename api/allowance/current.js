@@ -117,9 +117,18 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Current allowance error:', error);
+    console.error('Error details:', {
+      code: error.code,
+      codeName: error.codeName,
+      stack: error.stack
+    });
+
     return res.status(500).json({
       message: 'Server error',
-      error: error.message
+      error: error.message,
+      code: error.code || 'UNKNOWN',
+      type: error.constructor.name,
+      mongoUriExists: !!process.env.MONGODB_URI
     });
   } finally {
     if (client) {
