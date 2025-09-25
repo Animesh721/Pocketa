@@ -20,6 +20,19 @@ const AllowanceManager = () => {
 
   useEffect(() => {
     fetchAllowanceData();
+
+    // Refresh data when user returns to the budget page
+    const handleFocus = () => {
+      console.log('📊 Budget page focused, refreshing data...');
+      fetchAllowanceData();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const fetchAllowanceData = async () => {
@@ -239,12 +252,12 @@ const AllowanceManager = () => {
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-300">Utilization Rate</span>
-                  <span className="text-white font-medium">{((currentTopup.spent / currentTopup.amount) * 100).toFixed(1)}%</span>
+                  <span className="text-white font-medium">{currentTopup.amount > 0 ? ((currentTopup.spent / currentTopup.amount) * 100).toFixed(1) : 0}%</span>
                 </div>
                 <div className="w-full bg-slate-600 rounded-full h-2">
                   <div
                     className="h-2 bg-blue-500 rounded-full"
-                    style={{ width: `${Math.min((currentTopup.spent / currentTopup.amount) * 100, 100)}%` }}
+                    style={{ width: `${currentTopup.amount > 0 ? Math.min((currentTopup.spent / currentTopup.amount) * 100, 100) : 0}%` }}
                   ></div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 mt-4">
