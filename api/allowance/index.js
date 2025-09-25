@@ -82,6 +82,47 @@ export default async function handler(req, res) {
         }
       );
 
+      // Auto-fix balance: recalculate the correct balance after deposit
+      // Get current month data to ensure balance is accurate
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      // Get total allowance deposits this month (including the one just added)
+      const monthlyAllowances = await allowances.find({
+        userId,
+        createdAt: { $gte: startOfMonth }
+      }).toArray();
+
+      const totalDeposits = monthlyAllowances.reduce((sum, a) => sum + a.amount, 0);
+
+      // Get total expenses this month
+      const transactions = db.collection('transactions');
+      const monthlyTransactions = await transactions.find({
+        userId,
+        createdAt: { $gte: startOfMonth }
+      }).toArray();
+
+      const totalExpenses = monthlyTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+      // Calculate correct balance and update if different
+      const correctBalance = Math.max(0, totalDeposits - totalExpenses);
+
+      await users.updateOne(
+        { _id: userId },
+        {
+          $set: {
+            currentBalance: correctBalance,
+            updatedAt: new Date()
+          }
+        }
+      );
+
+      console.log('Balance auto-corrected:', {
+        totalDeposits,
+        totalExpenses,
+        correctBalance
+      });
+
       console.log('Updated user balance with allowance');
 
       // Debug: Check the updated user record
