@@ -75,6 +75,17 @@ export default async function handler(req, res) {
 
     const totalMonthlyAllowances = monthlyAllowances.reduce((sum, allowance) => sum + (allowance.amount || 0), 0);
 
+    // Debug logging
+    console.log('Current Allowance Debug:', {
+      userId: userId.toString(),
+      userCurrentBalance: user.currentBalance,
+      userLastAllowanceAmount: user.lastAllowanceAmount,
+      allowanceSpent: allowanceSpent,
+      totalMonthlyAllowances: totalMonthlyAllowances,
+      monthlyAllowancesCount: monthlyAllowances.length,
+      monthlyTransactionsCount: monthlyTransactions.length
+    });
+
     return res.json({
       currentBalance: user.currentBalance || 0,
       lastAllowanceAmount: user.lastAllowanceAmount || 0,

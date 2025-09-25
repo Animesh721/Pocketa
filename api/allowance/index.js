@@ -84,6 +84,13 @@ export default async function handler(req, res) {
 
       console.log('Updated user balance with allowance');
 
+      // Debug: Check the updated user record
+      const updatedUser = await users.findOne({ _id: userId });
+      console.log('User after allowance update:', {
+        currentBalance: updatedUser.currentBalance,
+        lastAllowanceAmount: updatedUser.lastAllowanceAmount
+      });
+
       // Return the created allowance
       const createdAllowance = await allowances.findOne({ _id: result.insertedId });
 
