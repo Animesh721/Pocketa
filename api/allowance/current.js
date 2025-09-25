@@ -86,19 +86,32 @@ export default async function handler(req, res) {
       monthlyTransactionsCount: monthlyTransactions.length
     });
 
+    // Calculate the correct remaining balance based on total deposits vs total spending
+    const calculatedRemaining = Math.max(0, totalMonthlyAllowances - allowanceSpent);
+
+    // If user.currentBalance doesn't match our calculation, use the calculated value
+    // This handles cases where old transactions messed up the balance
+    const actualRemaining = Math.max(calculatedRemaining, user.currentBalance || 0);
+
     return res.json({
-      currentBalance: user.currentBalance || 0,
+      currentBalance: actualRemaining,
       lastAllowanceAmount: user.lastAllowanceAmount || 0,
-      canRequestMore: true, // This can be enhanced later with business logic
-      nextAllowanceDate: null, // This can be calculated based on frequency
+      canRequestMore: true,
+      nextAllowanceDate: null,
       status: 'active',
-      hasActiveAllowance: (user.lastAllowanceAmount || 0) > 0,
+      hasActiveAllowance: totalMonthlyAllowances > 0,
       currentTopup: {
-        amount: totalMonthlyAllowances || 0, // Total deposits this month, not just last deposit
+        amount: totalMonthlyAllowances || 0,
         spent: allowanceSpent,
-        remaining: Math.max(0, user.currentBalance || 0), // Use actual current balance
-        originalAmount: totalMonthlyAllowances || 0, // Total deposits this month
-        carryOverAmount: 0 // Amount carried over from previous period
+        remaining: actualRemaining,
+        originalAmount: totalMonthlyAllowances || 0,
+        carryOverAmount: 0
+      },
+      debug: {
+        userCurrentBalance: user.currentBalance,
+        calculatedRemaining: calculatedRemaining,
+        totalMonthlyAllowances: totalMonthlyAllowances,
+        allowanceSpent: allowanceSpent
       }
     });
 

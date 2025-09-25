@@ -112,6 +112,23 @@ const AllowanceManager = () => {
     }
   };
 
+  const handleFixBalance = async () => {
+    try {
+      setSubmitting(true);
+      const response = await axios.post('/api/allowance/fix-balance');
+      setSuccess(`Balance corrected! New balance: ₹${response.data.after.currentBalance}`);
+      console.log('Balance fix details:', response.data);
+      fetchAllowanceData(); // Refresh data
+      setTimeout(() => setSuccess(''), 5000);
+    } catch (error) {
+      console.error('Fix balance error:', error);
+      setError(error.response?.data?.message || 'Failed to fix balance');
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
       year: 'numeric',
@@ -394,18 +411,26 @@ const AllowanceManager = () => {
                 {submitting ? 'Processing...' : 'Record Deposit'}
               </button>
 
-              {/* Sync Balance Button */}
-              <div className="pt-3 border-t border-slate-600/50">
+              {/* Balance Fix Buttons */}
+              <div className="pt-3 border-t border-slate-600/50 space-y-2">
                 <p className="text-xs text-slate-400 mb-2">
-                  Balance not showing correctly? Click below to recalculate:
+                  Balance not showing correctly? Try these fixes:
                 </p>
+                <button
+                  type="button"
+                  onClick={handleFixBalance}
+                  disabled={submitting}
+                  className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 disabled:opacity-50 text-sm font-medium"
+                >
+                  {submitting ? 'Fixing...' : 'Fix Balance (Recommended)'}
+                </button>
                 <button
                   type="button"
                   onClick={handleSyncBalance}
                   disabled={submitting}
                   className="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 disabled:opacity-50 text-sm"
                 >
-                  {submitting ? 'Syncing...' : 'Sync Balance'}
+                  {submitting ? 'Syncing...' : 'Sync Balance (Old)'}
                 </button>
               </div>
             </div>
