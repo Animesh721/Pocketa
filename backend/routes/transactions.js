@@ -45,7 +45,16 @@ router.post('/', auth, async (req, res) => {
   try {
     const { amount, description, category, date, type = 'expense' } = req.body;
 
+    console.log('Transaction creation attempt:', {
+      userId: req.user._id,
+      amount,
+      description,
+      category,
+      type
+    });
+
     if (!amount || !description || !category) {
+      console.log('Missing required fields:', { amount, description, category });
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
@@ -55,8 +64,8 @@ router.post('/', auth, async (req, res) => {
 
     let activeTopup = null;
 
-    // If this is an allowance expense, find active topup and link it
-    if (category === 'Allowance' && type === 'expense') {
+    // For expenses that require allowance deduction (Allowance and Extra categories)
+    if (type === 'expense' && (category === 'Allowance' || category === 'Extra')) {
       activeTopup = await AllowanceTopup.findOne({
         userId: req.user._id,
         isActive: true,
@@ -76,6 +85,12 @@ router.post('/', auth, async (req, res) => {
       }
     }
 
+    // For Essential expenses, allow without active allowance (separate tracking)
+    if (type === 'expense' && category === 'Essentials') {
+      // Essentials can be added without checking allowance balance
+      console.log(`Adding essential expense: ₹${amount} for ${description}`);
+    }
+
     const transaction = new Transaction({
       userId: req.user._id,
       amount,
@@ -88,9 +103,10 @@ router.post('/', auth, async (req, res) => {
 
     await transaction.save();
 
-    // Update allowance topup spent amount if this is an allowance expense
-    if (activeTopup) {
-      activeTopup.spent += parseFloat(amount);
+    // Update allowance topup spent amount only for Allowance and Extra categories
+    // Essentials are tracked separately and don't affect allowance balance
+    if (activeTopup && (category === 'Allowance' || category === 'Extra')) {
+      activeTopup.spent = Math.round((activeTopup.spent + Number(amount)) * 100) / 100;
       // Ensure remaining is recalculated correctly (pre-save middleware will handle this)
       await activeTopup.save();
 
@@ -98,6 +114,8 @@ router.post('/', auth, async (req, res) => {
       const user = await User.findById(req.user._id);
       user.currentBalance = activeTopup.remaining; // Sync with topup remaining
       await user.save();
+
+      console.log(`Deducted ₹${amount} from allowance balance for ${category} expense (Backend Route)`);
     }
 
     res.status(201).json({
@@ -155,6 +173,23 @@ router.delete('/:id', auth, async (req, res) => {
     res.json({ message: 'Transaction deleted successfully' });
   } catch (error) {
     console.error('Delete transaction error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete all transactions for current user
+router.delete('/user/all', auth, async (req, res) => {
+  try {
+    const result = await Transaction.deleteMany({ userId: req.user._id });
+
+    console.log(`Deleted ${result.deletedCount} transactions for user: ${req.user._id}`);
+
+    res.json({
+      message: `Successfully deleted ${result.deletedCount} transactions`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error('Delete all transactions error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

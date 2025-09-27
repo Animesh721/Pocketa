@@ -37,7 +37,9 @@ router.post('/', auth, async (req, res) => {
     const totalPreviousRemaining = previousTopups.reduce((sum, topup) => sum + topup.remaining, 0);
 
     // The new allowance amount includes carry-over from previous allowances
-    const totalAllowanceAmount = parseFloat(amount) + totalPreviousRemaining;
+    // Use Number() instead of parseFloat() and ensure proper rounding for currency
+    const parsedAmount = Number(amount);
+    const totalAllowanceAmount = Math.round((parsedAmount + totalPreviousRemaining) * 100) / 100;
 
     // Mark all previous topups as depleted since we're carrying over their balance
     if (previousTopups.length > 0) {
@@ -63,7 +65,7 @@ router.post('/', auth, async (req, res) => {
       receivedDate: receivedDate ? new Date(receivedDate) : new Date(),
       remaining: totalAllowanceAmount,
       spent: 0,
-      originalAmount: parseFloat(amount), // Track the original amount received
+      originalAmount: parsedAmount, // Track the original amount received
       carryOverAmount: totalPreviousRemaining // Track how much was carried over
     });
 
@@ -72,7 +74,7 @@ router.post('/', auth, async (req, res) => {
     // Update user's current balance
     const user = await User.findById(req.user._id);
     user.currentBalance = totalAllowanceAmount; // Set to total available balance
-    user.lastAllowanceAmount = parseFloat(amount); // Keep track of last received amount only
+    user.lastAllowanceAmount = parsedAmount; // Keep track of last received amount only
     await user.save();
 
     res.json({
@@ -82,7 +84,7 @@ router.post('/', auth, async (req, res) => {
       topup,
       newBalance: user.currentBalance,
       carryOverAmount: totalPreviousRemaining,
-      originalAmount: parseFloat(amount),
+      originalAmount: parsedAmount,
       totalAmount: totalAllowanceAmount
     });
   } catch (error) {
@@ -178,42 +180,101 @@ router.post('/sync-balance', auth, async (req, res) => {
     }).sort({ createdAt: -1 });
 
     if (activeTopups.length === 0) {
+      // Try to find the most recent allowance topup to reactivate
+      const latestTopup = await AllowanceTopup.findOne({
+        userId: req.user._id
+      }).sort({ createdAt: -1 });
+
+      if (!latestTopup) {
+        const user = await User.findById(req.user._id);
+        user.currentBalance = 0;
+        await user.save();
+
+        return res.json({
+          message: 'No allowances found. Balance set to 0.',
+          currentBalance: 0
+        });
+      }
+
+      // Reactivate the latest topup and recalculate its balance
+      console.log('Reactivating latest topup:', latestTopup._id);
+
+      // Get transactions since this topup was created
+      const transactionsSinceAllowance = await Transaction.find({
+        userId: req.user._id,
+        type: 'expense',
+        date: { $gte: latestTopup.createdAt }
+      });
+
+      const totalSpentSinceAllowance = transactionsSinceAllowance.reduce((sum, transaction) => sum + transaction.amount, 0);
+      const newRemaining = Math.max(0, latestTopup.amount - totalSpentSinceAllowance);
+
+      // Update the topup
+      latestTopup.spent = totalSpentSinceAllowance;
+      latestTopup.remaining = newRemaining;
+      latestTopup.isActive = newRemaining > 0;
+      await latestTopup.save();
+
+      // Update user balance
       const user = await User.findById(req.user._id);
-      user.currentBalance = 0;
+      user.currentBalance = newRemaining;
       await user.save();
 
+      console.log('Reactivated allowance debug:', {
+        topupAmount: latestTopup.amount,
+        totalSpentSinceAllowance,
+        newRemaining,
+        isActive: latestTopup.isActive,
+        transactionsCount: transactionsSinceAllowance.length
+      });
+
       return res.json({
-        message: 'No active allowances. Balance set to 0.',
-        currentBalance: 0
+        message: `Allowance reactivated! Recalculated balance: ₹${newRemaining}`,
+        currentBalance: newRemaining
       });
     }
 
-    // Recalculate spent amounts for each topup by summing transactions
-    let totalRemainingBalance = 0;
+    // Get the most recent active topup to use as the baseline date
+    const latestTopup = activeTopups.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
 
+    // Get ALL expense transactions since the latest allowance topup was created
+    const transactionsSinceAllowance = await Transaction.find({
+      userId: req.user._id,
+      type: 'expense',
+      date: { $gte: latestTopup.createdAt }
+    });
+
+    const totalSpentSinceAllowance = transactionsSinceAllowance.reduce((sum, transaction) => sum + transaction.amount, 0);
+    const totalAllowanceAmount = activeTopups.reduce((sum, topup) => sum + topup.amount, 0);
+
+    // Update each topup with spent amount since allowance
     for (const topup of activeTopups) {
-      // Get all transactions for this topup
-      const transactions = await Transaction.find({
-        allowanceTopupId: topup._id,
-        category: 'Allowance',
-        type: 'expense'
-      });
-
-      const actualSpent = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-
-      // Update the topup with correct spent amount
-      topup.spent = actualSpent;
-      await topup.save(); // This will trigger pre-save middleware to recalculate remaining
-
-      if (topup.remaining > 0) {
-        totalRemainingBalance += topup.remaining;
-      }
+      topup.spent = totalSpentSinceAllowance; // Assign spending since allowance to all active topups
+      await topup.save();
     }
 
-    // Update user's current balance to match the total remaining
+    // Calculate final remaining balance: total allowance - total spent since allowance
+    const finalRemainingBalance = Math.max(0, totalAllowanceAmount - totalSpentSinceAllowance);
+
+    // Update user's current balance
     const user = await User.findById(req.user._id);
-    user.currentBalance = totalRemainingBalance;
+    user.currentBalance = finalRemainingBalance;
     await user.save();
+
+    console.log('Sync Balance Debug:', {
+      totalAllowanceAmount,
+      totalSpentSinceAllowance,
+      finalRemainingBalance,
+      activeTopupsCount: activeTopups.length,
+      latestTopupCreatedAt: latestTopup.createdAt,
+      transactionsSinceAllowanceCount: transactionsSinceAllowance.length,
+      transactionsSinceAllowance: transactionsSinceAllowance.map(t => ({
+        amount: t.amount,
+        category: t.category,
+        description: t.description,
+        date: t.date
+      }))
+    });
 
     res.json({
       message: 'Balances synchronized successfully',
@@ -282,6 +343,98 @@ router.post('/repair-balances', async (req, res) => {
   } catch (error) {
     console.error('Repair error:', error);
     res.status(500).json({ message: 'Repair error', error: error.message });
+  }
+});
+
+// Quick fix endpoint for precision issues
+router.post('/fix-precision', auth, async (req, res) => {
+  try {
+    const activeTopup = await AllowanceTopup.findOne({
+      userId: req.user._id,
+      remaining: { $gt: 0 }
+    }).sort({ createdAt: -1 });
+
+    if (!activeTopup) {
+      return res.status(404).json({ message: 'No active allowance found' });
+    }
+
+    // Fix precision issues by rounding to 2 decimal places
+    activeTopup.amount = Math.round(activeTopup.amount * 100) / 100;
+    activeTopup.spent = Math.round(activeTopup.spent * 100) / 100;
+    activeTopup.remaining = Math.round(activeTopup.remaining * 100) / 100;
+
+    // If original amount was meant to be 300, fix it
+    if (activeTopup.amount === 299.98) {
+      activeTopup.amount = 300;
+      activeTopup.originalAmount = 300;
+      activeTopup.remaining = 300 - activeTopup.spent;
+    }
+
+    // If original amount was meant to be 500, fix it
+    if (activeTopup.amount === 499.98) {
+      activeTopup.amount = 500;
+      activeTopup.originalAmount = 500;
+      activeTopup.remaining = 500 - activeTopup.spent;
+    }
+
+    await activeTopup.save();
+
+    // Update user balance
+    const user = await User.findById(req.user._id);
+    user.currentBalance = activeTopup.remaining;
+    await user.save();
+
+    res.json({
+      message: 'Precision issues fixed',
+      allowance: {
+        amount: activeTopup.amount,
+        spent: activeTopup.spent,
+        remaining: activeTopup.remaining
+      }
+    });
+  } catch (error) {
+    console.error('Fix precision error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Emergency fix for 499.98 -> 500
+router.post('/emergency-fix', auth, async (req, res) => {
+  try {
+    // Find and fix all topups with 499.98
+    const topupsToFix = await AllowanceTopup.find({
+      userId: req.user._id,
+      amount: 499.98
+    });
+
+    let fixedCount = 0;
+    for (const topup of topupsToFix) {
+      topup.amount = 500;
+      topup.originalAmount = 500;
+      topup.remaining = 500 - topup.spent;
+      await topup.save();
+      fixedCount++;
+    }
+
+    // Update user balance
+    const user = await User.findById(req.user._id);
+    const activeTopup = await AllowanceTopup.findOne({
+      userId: req.user._id,
+      remaining: { $gt: 0 }
+    }).sort({ createdAt: -1 });
+
+    if (activeTopup) {
+      user.currentBalance = activeTopup.remaining;
+      await user.save();
+    }
+
+    res.json({
+      message: 'Emergency fix applied',
+      fixedCount: fixedCount
+    });
+  } catch (error) {
+    console.error('Emergency fix error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

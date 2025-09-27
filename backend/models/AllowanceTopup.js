@@ -62,7 +62,7 @@ const allowanceTopupSchema = new mongoose.Schema({
 
 // Pre-save middleware to calculate remaining and track depletion
 allowanceTopupSchema.pre('save', function(next) {
-  this.remaining = this.amount - this.spent;
+  this.remaining = Math.round((this.amount - this.spent) * 100) / 100;
 
   // Check if allowance just got depleted (remaining <= 0 and wasn't depleted before)
   if (this.remaining <= 0 && !this.depletedDate && this.spent > 0) {

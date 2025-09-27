@@ -43,7 +43,7 @@ const AllowanceManager = () => {
         axios.get('/api/allowance/current')
       ]);
 
-      setAllowanceHistory(historyResponse.data.history || []);
+      setAllowanceHistory(historyResponse.data || []);
       setCurrentTopup(currentResponse.data.hasActiveAllowance ? currentResponse.data.currentTopup : null);
       setError('');
     } catch (error) {
@@ -132,8 +132,8 @@ const AllowanceManager = () => {
   const handleSetBalance = async () => {
     try {
       setSubmitting(true);
-      const response = await axios.post('/api/set-balance');
-      setSuccess(`Balance manually set! New balance: ₹${response.data.after}`);
+      const response = await axios.post('/api/allowance/sync-balance');
+      setSuccess(`Balance synchronized! New balance: ₹${response.data.currentBalance}`);
       console.log('Manual balance set:', response.data);
       fetchAllowanceData(); // Refresh data
       setTimeout(() => setSuccess(''), 5000);
@@ -251,23 +251,6 @@ const AllowanceManager = () => {
           </div>
         </div>
 
-        {/* Fix Balance Button - Prominent Location */}
-        <div className="bg-red-900/30 border border-red-600/50 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-red-300 font-medium mb-1">Balance Not Correct?</p>
-              <p className="text-xs text-red-400">Should be: Deposits - ALL Expenses = Remaining. Click to recalculate.</p>
-            </div>
-            <button
-              type="button"
-              onClick={handleSetBalance}
-              disabled={submitting}
-              className="bg-red-600 text-white py-3 px-6 rounded-md hover:bg-red-700 disabled:opacity-50 font-medium text-sm"
-            >
-              {submitting ? 'Calculating...' : 'Fix Balance Now'}
-            </button>
-          </div>
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Current Status */}
@@ -446,28 +429,6 @@ const AllowanceManager = () => {
                 {submitting ? 'Processing...' : 'Record Deposit'}
               </button>
 
-              {/* Balance Fix Buttons */}
-              <div className="pt-3 border-t border-slate-600/50 space-y-2">
-                <p className="text-xs text-slate-400 mb-2">
-                  Balance not showing correctly? Try these fixes:
-                </p>
-                <button
-                  type="button"
-                  onClick={handleFixBalance}
-                  disabled={submitting}
-                  className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 disabled:opacity-50 text-sm font-medium"
-                >
-                  {submitting ? 'Fixing...' : 'Fix Balance (Recommended)'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSyncBalance}
-                  disabled={submitting}
-                  className="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 disabled:opacity-50 text-sm"
-                >
-                  {submitting ? 'Syncing...' : 'Sync Balance (Old)'}
-                </button>
-              </div>
             </div>
           </form>
           </div>

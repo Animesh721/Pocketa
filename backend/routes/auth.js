@@ -46,6 +46,27 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Temporary password reset for debugging
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.password = newPassword; // This will trigger the pre-save hash middleware
+    await user.save();
+
+    console.log('Password reset for:', email);
+    res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;

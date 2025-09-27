@@ -1,6 +1,11 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 
+// Configure axios base URL for backend API
+axios.defaults.baseURL = process.env.NODE_ENV === 'production'
+  ? process.env.REACT_APP_API_URL || ''
+  : 'http://localhost:5002';
+
 const AuthContext = createContext();
 
 const authReducer = (state, action) => {
@@ -111,7 +116,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      const response = await axios.post('/api/auth/register-native', { name, email, password });
+      const response = await axios.post('/api/auth/register', { name, email, password });
       const { token, user } = response.data;
 
       localStorage.setItem('token', token);

@@ -79,6 +79,19 @@ export default async function handler(req, res) {
 
     const totalSpent = monthlyTransactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
 
+    console.log('Current Allowance API Debug - Monthly Transactions:', {
+      count: monthlyTransactions.length,
+      transactions: monthlyTransactions.map(t => ({
+        amount: t.amount,
+        description: t.description,
+        category: t.category,
+        createdAt: t.createdAt,
+        date: t.date
+      })),
+      totalSpent: totalSpent,
+      startOfMonth: startOfMonth
+    });
+
     // Get total allowance deposits this month
     const monthlyAllowances = await allowances.find({
       userId,
@@ -86,6 +99,16 @@ export default async function handler(req, res) {
     }).toArray();
 
     const totalMonthlyAllowances = monthlyAllowances.reduce((sum, allowance) => sum + (allowance.amount || 0), 0);
+
+    console.log('Current Allowance API Debug - Monthly Allowances:', {
+      count: monthlyAllowances.length,
+      allowances: monthlyAllowances.map(a => ({
+        amount: a.amount,
+        description: a.description,
+        createdAt: a.createdAt
+      })),
+      totalMonthlyAllowances: totalMonthlyAllowances
+    });
 
     // Debug logging
     console.log('Current Allowance Debug:', {
@@ -101,8 +124,21 @@ export default async function handler(req, res) {
     // Standardized balance calculation: monthly allowance deposits - ALL spending
     const calculatedRemaining = Math.max(0, totalMonthlyAllowances - totalSpent);
 
-    // Use calculated balance as source of truth (handles any data inconsistencies)
-    const actualRemaining = calculatedRemaining;
+    // Use user's current balance if it's reasonable, otherwise use calculated
+    // This handles cases where transactions were recorded via API but not reflected in calculation
+    const userBalance = user.currentBalance || 0;
+    const balanceDifference = Math.abs(userBalance - calculatedRemaining);
+
+    // If user balance is close to calculated (within ₹10 difference), trust user balance
+    const actualRemaining = (balanceDifference <= 10 && userBalance >= 0) ? userBalance : calculatedRemaining;
+
+    console.log('Balance reconciliation:', {
+      calculatedRemaining,
+      userCurrentBalance: userBalance,
+      difference: balanceDifference,
+      usingUserBalance: balanceDifference <= 10 && userBalance >= 0,
+      actualRemaining
+    });
 
     return res.json({
       currentBalance: actualRemaining,
