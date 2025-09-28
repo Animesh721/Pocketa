@@ -56,17 +56,12 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    console.log('User found, checking password...');
-
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      console.log('Invalid password');
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-
-    console.log('Password valid, generating token...');
 
     // Generate JWT token
     if (!process.env.JWT_SECRET) {
@@ -82,7 +77,7 @@ export default async function handler(req, res) {
       { expiresIn: '24h' }
     );
 
-    console.log('Login successful for user:', user.email);
+    // Login successful
 
     res.status(200).json({
       message: 'Login successful',

@@ -59,7 +59,7 @@ router.post('/reset-password', async (req, res) => {
     user.password = newPassword; // This will trigger the pre-save hash middleware
     await user.save();
 
-    console.log('Password reset for:', email);
+    // Password reset completed
     res.json({ message: 'Password reset successfully' });
   } catch (error) {
     console.error('Reset password error:', error);
@@ -70,20 +70,16 @@ router.post('/reset-password', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('Login attempt:', { email, password: '***' });
-
     if (!email || !password) {
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
     const user = await User.findOne({ email });
-    console.log('User found:', user ? 'Yes' : 'No');
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     const isMatch = await user.comparePassword(password);
-    console.log('Password match:', isMatch);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }

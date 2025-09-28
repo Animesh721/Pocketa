@@ -9,11 +9,14 @@ yarn-error.log*
 /backend/dist
 
 # Environment variables
-.env
+.env*
+!.env.example
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
+.env.vercel
 
 # IDE files
 .vscode/
