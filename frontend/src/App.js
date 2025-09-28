@@ -15,6 +15,7 @@ import ChangePassword from './pages/ChangePassword';
 import ExpenseReport from './pages/ExpenseReport';
 import Navbar from './components/Navbar';
 import LoadingSpinner from './components/LoadingSpinner';
+import ExpenseReportNotification from './components/ExpenseReportNotification';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -141,6 +142,15 @@ const AppContent = () => {
             path="/expense-report"
             element={
               <ProtectedRoute>
+                <Navigate to={`/expense-report/${new Date().getMonth() + 1}/${new Date().getFullYear()}`} />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/expense-report/:month/:year"
+            element={
+              <ProtectedRoute>
                 <ExpenseReport />
               </ProtectedRoute>
             }
@@ -149,6 +159,9 @@ const AppContent = () => {
           <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
       </main>
+
+      {/* Global Notification Component */}
+      {isAuthenticated && <ExpenseReportNotification />}
     </div>
   );
 };

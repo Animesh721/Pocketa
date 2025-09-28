@@ -8,7 +8,7 @@
 
 **Smart allowance tracking with AI-powered insights for students**
 
-[Live Demo](https://your-deployment-url.com) • [Report Bug](https://github.com/your-username/pocketa/issues) • [Request Feature](https://github.com/your-username/pocketa/issues)
+[GitHub Repository](https://github.com/Animesh721/Pocketa) • [Report Bug](https://github.com/Animesh721/Pocketa/issues) • [Request Feature](https://github.com/Animesh721/Pocketa/issues)
 
 </div>
 
@@ -23,10 +23,10 @@
 - **Multilingual Support**: Optimized for Indian student financial scenarios
 
 ### 📱 **Progressive Web App (PWA)**
-- **Install Button**: Functional PWA installation for all devices
-- **Offline Support**: Service worker for offline functionality
 - **App-like Experience**: Standalone mode with custom splash screen
+- **Offline Support**: Service worker for offline functionality
 - **Push Notifications**: Budget alerts and spending reminders
+- **Mobile Optimized**: Responsive design for all devices
 
 ### 💰 **Smart Expense Tracking**
 - **Three-Category System**: Allowance, Essentials, and Extra expenses
@@ -87,8 +87,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/pocketa.git
-cd pocketa
+git clone https://github.com/Animesh721/Pocketa.git
+cd Pocketa
 
 # Install backend dependencies
 cd backend
@@ -108,7 +108,7 @@ Create `.env` in the backend directory:
 MONGODB_URI=mongodb://localhost:27017/pocketa
 
 # Server
-PORT=5000
+PORT=5002
 NODE_ENV=development
 
 # Security
@@ -125,7 +125,7 @@ FRONTEND_URL=http://localhost:3000
 
 ```bash
 # Terminal 1: Start Backend (from /backend)
-npm run dev
+PORT=5002 npm start
 
 # Terminal 2: Start Frontend (from /frontend)
 npm start
@@ -136,7 +136,7 @@ npm run build && npx serve -s build
 
 **🌐 Access the app:**
 - **Development**: http://localhost:3000
-- **Backend API**: http://localhost:5000
+- **Backend API**: http://localhost:5002
 - **Production Build**: http://localhost:3001
 
 ---
@@ -186,7 +186,7 @@ pocketa/
 │   │   │   ├── ChatAdvisor.js     # AI chat interface
 │   │   │   ├── AllowancePrediction.js # ML predictions
 │   │   │   ├── ExpenseChart.js    # Data visualizations
-│   │   │   └── Navbar.js          # PWA install button
+│   │   │   └── Navbar.js          # Navigation component
 │   │   ├── pages/                 # Route components
 │   │   │   ├── Dashboard.js       # Main analytics view
 │   │   │   ├── AIAdvice.js        # AI advisor page
@@ -344,8 +344,8 @@ npm run test:pwa
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md).
 
 ### 🐛 **Found a Bug?**
-1. Check [existing issues](https://github.com/your-username/pocketa/issues)
-2. Create a [new issue](https://github.com/your-username/pocketa/issues/new) with details
+1. Check [existing issues](https://github.com/Animesh721/Pocketa/issues)
+2. Create a [new issue](https://github.com/Animesh721/Pocketa/issues/new) with details
 3. Submit a PR with the fix
 
 ### ✨ **Want to Add a Feature?**
@@ -423,7 +423,7 @@ Created with ❤️ by **[Your Name]**
 
 **⭐ Star this repo if it helped you manage your finances better! ⭐**
 
-**📱 [Try Pocketa Live](https://your-deployment-url.com) | 📚 [Read the Docs](https://docs.your-site.com) | 🎮 [Interactive Demo](https://demo.your-site.com)**
+**📱 [View on GitHub](https://github.com/Animesh721/Pocketa) | 📚 [Setup Guide](#-quick-start) | 💡 [Features](#-features-overview)**
 
 ---
 

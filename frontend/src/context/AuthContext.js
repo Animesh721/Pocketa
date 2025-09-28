@@ -4,7 +4,7 @@ import axios from 'axios';
 // Configure axios base URL for backend API
 axios.defaults.baseURL = process.env.NODE_ENV === 'production'
   ? process.env.REACT_APP_API_URL || ''
-  : 'http://localhost:5002';
+  : 'http://localhost:5000';
 
 const AuthContext = createContext();
 

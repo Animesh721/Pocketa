@@ -10,6 +10,9 @@ const statsRoutes = require('./routes/stats');
 const adviceRoutes = require('./routes/advice');
 const allowanceRoutes = require('./routes/allowance');
 const reportsRoutes = require('./routes/reports');
+const { router: monthlyResetRoutes } = require('./routes/monthly-reset');
+const expenseReportsRoutes = require('./routes/expense-reports');
+const { startMonthlyResetScheduler } = require('./services/scheduler');
 
 const app = express();
 
@@ -36,6 +39,8 @@ app.use('/api/stats', statsRoutes);
 app.use('/api/advice', adviceRoutes);
 app.use('/api/allowance', allowanceRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/monthly-reset', monthlyResetRoutes);
+app.use('/api/expense-reports', expenseReportsRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Smart Allowance Tracker API is running!' });
@@ -45,6 +50,9 @@ const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log('Connected to MongoDB:', process.env.MONGODB_URI);
+
+  // Start the monthly reset scheduler
+  startMonthlyResetScheduler();
 });
 
 

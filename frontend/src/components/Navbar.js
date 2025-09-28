@@ -8,7 +8,6 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const hamburgerRef = useRef(null);
@@ -34,97 +33,6 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
 
-  // PWA Install functionality
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e) => {
-      console.log('beforeinstallprompt event fired');
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-
-    const handleAppInstalled = (e) => {
-      console.log('App installed successfully');
-      setDeferredPrompt(null);
-      // Optionally show success message
-      setTimeout(() => {
-        alert('🎉 Pocketa is now installed! You can access it from your home screen.');
-      }, 1000);
-    };
-
-    // Add event listeners
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
-
-    // Check if already installed
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (isStandalone) {
-      console.log('App is already installed');
-    } else {
-      // Install prompt will be available when needed
-      console.log('App not installed, install prompt will be shown when available');
-    }
-
-    // Debug info
-    console.log('PWA Install setup complete', {
-      isStandalone,
-      userAgent: navigator.userAgent,
-      hasServiceWorker: 'serviceWorker' in navigator
-    });
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    try {
-      // Check if already installed
-      if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-        alert('✅ Pocketa is already installed on your device!');
-        return;
-      }
-
-      if (!deferredPrompt) {
-        // Detect device and browser for specific instructions
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isAndroid = /Android/.test(navigator.userAgent);
-        const isSafari = /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
-        const isChrome = /Chrome/.test(navigator.userAgent);
-
-        let instructions = `📱 Install Pocketa as an app:\n\n`;
-
-        if (isIOS && isSafari) {
-          instructions += `🍎 **Safari (iOS):**\n1. Tap the Share button (□↗) below\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" to install\n\n✨ You'll get app icon on home screen!`;
-        } else if (isAndroid && isChrome) {
-          instructions += `🤖 **Chrome (Android):**\n1. Tap the 3-dot menu (⋮) in top-right\n2. Select "Add to Home screen"\n3. Tap "Add" to install\n\n✨ You'll get app icon on home screen!`;
-        } else {
-          instructions += `🖥️ **Desktop:**\n1. Look for install icon (⊞) in address bar\n2. Or use browser menu → "Install Pocketa"\n\n📱 **Mobile:**\n- Chrome: Menu → "Add to Home screen"\n- Safari: Share → "Add to Home Screen"\n\n✨ Install for faster access and offline use!`;
-        }
-
-        alert(instructions);
-        return;
-      }
-
-      // Use native install prompt
-      console.log('Triggering install prompt...');
-      deferredPrompt.prompt();
-
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log('Install outcome:', outcome);
-
-      if (outcome === 'accepted') {
-        setDeferredPrompt(null);
-        // Show success message
-        setTimeout(() => {
-          alert('🎉 Pocketa installed successfully! Check your home screen.');
-        }, 1000);
-      }
-    } catch (error) {
-      console.error('Install error:', error);
-      alert('Unable to install automatically. Please use your browser menu to add Pocketa to home screen.');
-    }
-  };
 
   const handleNavigation = (path) => {
     setShowProfileDropdown(false);
