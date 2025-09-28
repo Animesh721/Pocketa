@@ -97,6 +97,7 @@ const AllowanceManager = () => {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleSyncBalance = async () => {
     try {
       setSubmitting(true);
@@ -112,6 +113,7 @@ const AllowanceManager = () => {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleFixBalance = async () => {
     try {
       setSubmitting(true);
@@ -129,6 +131,7 @@ const AllowanceManager = () => {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleSetBalance = async () => {
     try {
       setSubmitting(true);

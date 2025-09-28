@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -12,14 +12,7 @@ const ExpenseReport = () => {
   const [error, setError] = useState(null);
   const [viewType, setViewType] = useState('monthly');
 
-  useEffect(() => {
-    if (month && year) {
-      fetchMonthlyReport();
-      fetchAnnualReport();
-    }
-  }, [month, year]);
-
-  const fetchMonthlyReport = async () => {
+  const fetchMonthlyReport = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get(`/api/expense-reports/monthly/${month}/${year}`);
@@ -31,16 +24,23 @@ const ExpenseReport = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [month, year]);
 
-  const fetchAnnualReport = async () => {
+  const fetchAnnualReport = useCallback(async () => {
     try {
       const response = await axios.get(`/api/expense-reports/annual/${year}`);
       setAnnualData(response.data);
     } catch (error) {
       console.error('Error fetching annual report:', error);
     }
-  };
+  }, [year]);
+
+  useEffect(() => {
+    if (month && year) {
+      fetchMonthlyReport();
+      fetchAnnualReport();
+    }
+  }, [month, year, fetchMonthlyReport, fetchAnnualReport]);
 
   const getMonthName = (monthNum) => {
     return new Date(year, monthNum - 1).toLocaleDateString('en-US', { month: 'long' });
@@ -50,6 +50,7 @@ const ExpenseReport = () => {
     return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
+  // eslint-disable-next-line no-unused-vars
   const getCategoryColor = (category) => {
     const colors = {
       'Allowance': 'bg-blue-100 text-blue-800',
@@ -61,6 +62,7 @@ const ExpenseReport = () => {
 
   // Download report as PDF
   const downloadReport = () => {
+    // eslint-disable-next-line no-unused-vars
     const filename = viewType === 'monthly'
       ? `expense-report-${month}-${year}.pdf`
       : `annual-report-${year}.pdf`;
