@@ -213,12 +213,7 @@ const AllowanceManager = () => {
             <div>
               <p className="text-sm font-medium text-slate-400 mb-2">Total Deposits</p>
               <p className="text-2xl font-semibold text-white">
-                ₹{(Array.isArray(allowanceHistory) ? allowanceHistory.reduce((sum, t) => {
-                  // For deposits with carry-over, use originalAmount (actual new deposit)
-                  // For deposits without carry-over, use the full amount
-                  const actualDeposit = t.originalAmount || t.amount;
-                  return sum + actualDeposit;
-                }, 0) : 0).toLocaleString()}
+                ₹{(Array.isArray(allowanceHistory) ? allowanceHistory.reduce((sum, t) => sum + (t.amount || 0), 0) : 0).toLocaleString()}
               </p>
             </div>
           </div>

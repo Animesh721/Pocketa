@@ -53,55 +53,56 @@ export default async function handler(req, res) {
 
     // Get transactions to calculate spending for each allowance period
     const transactions = db.collection('transactions');
+    const allTransactions = await transactions.find({ userId })
+      .sort({ createdAt: 1 })
+      .toArray();
 
-    // For now, we'll calculate monthly spending from allowance category transactions
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    // Process each allowance with its spending
+    const enhancedHistory = [];
 
-    const allowanceTransactions = await transactions.find({
-      userId,
-      category: 'Allowance',
-      createdAt: { $gte: startOfMonth }
-    }).toArray();
+    for (let i = 0; i < allowanceHistory.length; i++) {
+      const allowance = allowanceHistory[i];
+      const nextAllowance = i > 0 ? allowanceHistory[i - 1] : null;
 
-    const totalAllowanceSpent = allowanceTransactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
+      // Determine the time period for this allowance
+      const startDate = new Date(allowance.createdAt);
+      const endDate = nextAllowance ? new Date(nextAllowance.createdAt) : new Date();
 
-    // Enhance allowance history with spending data
-    // For now, we'll only track spending for the current month's allowances
-    // Historical tracking would require more complex date-based transaction matching
-    const enhancedHistory = allowanceHistory.map((allowance, index) => {
-      // Only the most recent allowance should show actual spending
-      // Older allowances should show 0 spent to avoid inflating totals
-      if (index === 0 && allowanceHistory.length > 0) {
-        const spent = totalAllowanceSpent;
-        const remaining = Math.max(0, allowance.amount - spent);
-        return {
-          ...allowance,
-          spent: spent,
-          remaining: remaining,
-          daysLasted: spent >= allowance.amount ?
-            Math.floor((now - new Date(allowance.createdAt)) / (1000 * 60 * 60 * 24)) : null
-        };
-      }
-      // For older allowances, don't show any spending to avoid double-counting
-      // This prevents inflating the "total utilized" amount
-      return {
+      // Get transactions within this allowance period
+      const periodTransactions = allTransactions.filter(t => {
+        const tDate = new Date(t.createdAt);
+        return tDate >= startDate && tDate < endDate;
+      });
+
+      const spent = periodTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+      const remaining = Math.max(0, allowance.amount - spent);
+
+      // Calculate if allowance was depleted
+      const isActive = !nextAllowance; // Only the most recent is active
+      const daysLasted = nextAllowance
+        ? Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24))
+        : null;
+      const depletedDate = spent >= allowance.amount && nextAllowance
+        ? endDate
+        : null;
+
+      enhancedHistory.push({
         ...allowance,
-        spent: 0, // Don't assume historical spending
-        remaining: allowance.amount || 0, // Show full amount as remaining for historical records
-        daysLasted: null // Unknown for historical records
-      };
-    });
+        spent,
+        remaining,
+        isActive,
+        daysLasted,
+        depletedDate,
+        expenses: periodTransactions,
+        expenseCount: periodTransactions.length
+      });
+    }
 
     // Calculate totals
     const totalAllowances = allowanceHistory.reduce((sum, allowance) => sum + allowance.amount, 0);
+    const totalAllowanceSpent = enhancedHistory.reduce((sum, a) => sum + (a.spent || 0), 0);
 
-    return res.json({
-      history: enhancedHistory,
-      totalAllowances,
-      totalSpent: totalAllowanceSpent,
-      count: allowanceHistory.length
-    });
+    return res.json(enhancedHistory);
 
   } catch (error) {
     console.error('Allowance history error:', error);
