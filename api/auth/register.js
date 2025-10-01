@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const { MongoClient } = require('mongodb');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -16,26 +16,28 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
+  let client;
+
   try {
-    // Disable mongoose buffering to prevent timeout issues
-    mongoose.set('bufferCommands', false);
+    // Optimized for Vercel serverless functions
+    console.log('Connecting to MongoDB with native driver for registration...');
+    if (!process.env.MONGODB_URI) {
+      return res.status(500).json({
+        message: 'Database configuration missing',
+        error: 'MONGODB_URI not set'
+      });
+    }
 
-    // Use the exact same connection pattern that works in mongodb-test
-    const connectionOptions = {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 15000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-      minPoolSize: 5,
-    };
+    client = new MongoClient(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 5000,
+    });
 
-    console.log('Attempting MongoDB connection...');
-    await mongoose.connect(process.env.MONGODB_URI, connectionOptions);
-    console.log('MongoDB connection successful');
+    await client.connect();
+    console.log('Connected to MongoDB successfully');
 
-    // Import User model after connection
-    const User = require('../../backend/models/User');
+    const db = client.db('pocketa');
+    const users = db.collection('users');
 
     const { username, name, email, password, confirmPassword } = req.body;
 
@@ -51,8 +53,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Passwords do not match' });
     }
 
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
+
+    console.log('Checking if user exists with email:', email);
+
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await users.findOne({ email: email.toLowerCase().trim() });
 
     if (existingUser) {
       return res.status(400).json({
@@ -60,29 +68,50 @@ export default async function handler(req, res) {
       });
     }
 
-    // Create user (let the model handle password hashing)
-    const user = new User({
-      name: userName,
-      email,
-      password // The model will hash this automatically
-    });
+    console.log('Creating new user...');
 
-    await user.save();
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create user document
+    const newUser = {
+      name: userName,
+      email: email.toLowerCase().trim(),
+      password: hashedPassword,
+      lastAllowanceAmount: 0,
+      currentBalance: 0,
+      setupCompleted: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const result = await users.insertOne(newUser);
 
     // Generate JWT token
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({
+        message: 'Authentication configuration missing',
+        error: 'JWT_SECRET not set'
+      });
+    }
+
     const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      process.env.JWT_SECRET || 'fallback-secret',
+      { userId: result.insertedId, email: newUser.email },
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
+
+    console.log('User created successfully');
 
     res.status(201).json({
       message: 'User registered successfully',
       token,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email
+        id: result.insertedId,
+        name: newUser.name,
+        email: newUser.email,
+        setupCompleted: newUser.setupCompleted
       }
     });
 
@@ -93,9 +122,8 @@ export default async function handler(req, res) {
       error: error.message
     });
   } finally {
-    // Always close the connection after the operation
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.connection.close();
+    if (client) {
+      await client.close();
     }
   }
 }
