@@ -178,7 +178,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <h3 className="text-sm font-medium text-slate-300 mb-2">Current Allowance</h3>
-                {currentAllowance?.hasActiveAllowance || (currentAllowance?.currentBalance > 0) ? (
+                {(currentAllowance?.currentTopup?.remaining > 0 || currentAllowance?.currentBalance > 0) ? (
                   <div>
                     <p className="text-3xl font-bold text-white mb-2">
                       ₹{(currentAllowance?.currentTopup?.remaining || currentAllowance?.currentBalance || 0).toLocaleString()}
