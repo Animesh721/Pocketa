@@ -15,7 +15,7 @@ const ExpenseReport = () => {
   const fetchMonthlyReport = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/expense-reports/monthly/${month}/${year}`);
+      const response = await axios.get(`/api/expense-reports/monthly?month=${month}&year=${year}`);
       setReportData(response.data);
       setError(null);
     } catch (error) {
@@ -28,7 +28,7 @@ const ExpenseReport = () => {
 
   const fetchAnnualReport = useCallback(async () => {
     try {
-      const response = await axios.get(`/api/expense-reports/annual/${year}`);
+      const response = await axios.get(`/api/expense-reports/annual?year=${year}`);
       setAnnualData(response.data);
     } catch (error) {
       console.error('Error fetching annual report:', error);

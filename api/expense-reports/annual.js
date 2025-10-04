@@ -40,9 +40,9 @@ module.exports = async function handler(req, res) {
   let client;
 
   try {
-    // Get year from URL path
-    const pathParts = req.url.split('/');
-    const year = parseInt(pathParts[pathParts.length - 1]);
+    // Get year from query parameters
+    const { year: yearParam } = req.query;
+    const year = parseInt(yearParam);
 
     if (!year || year < 2020 || year > 2030) {
       return res.status(400).json({ message: 'Invalid year' });

@@ -40,10 +40,10 @@ module.exports = async function handler(req, res) {
   let client;
 
   try {
-    // Get month and year from URL path
-    const pathParts = req.url.split('/');
-    const month = parseInt(pathParts[pathParts.length - 2]);
-    const year = parseInt(pathParts[pathParts.length - 1]);
+    // Get month and year from query parameters
+    const { month: monthParam, year: yearParam } = req.query;
+    const month = parseInt(monthParam);
+    const year = parseInt(yearParam);
 
     if (!month || !year || month < 1 || month > 12 || year < 2020 || year > 2030) {
       return res.status(400).json({ message: 'Invalid month or year' });
