@@ -2,8 +2,10 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 
 // Configure axios base URL for backend API
+// In production (Vercel), use relative URLs so requests go to the same domain
+// In development, proxy through package.json or use localhost backend
 axios.defaults.baseURL = process.env.NODE_ENV === 'production'
-  ? process.env.REACT_APP_API_URL || ''
+  ? '' // Relative URLs work with Vercel's routing
   : 'http://localhost:5000';
 
 const AuthContext = createContext();
