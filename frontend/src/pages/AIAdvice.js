@@ -110,7 +110,7 @@ const AIAdvice = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
             {/* Main Chat Area - Full Width */}
-            <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 overflow-hidden" style={{ height: '60vh' }}>
+            <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 overflow-hidden" style={{ height: '75vh' }}>
               <ChatAdvisor />
             </div>
 
