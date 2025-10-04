@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ChatAdvisor from '../components/ChatAdvisor';
-import AllowancePrediction from '../components/AllowancePrediction';
 import axios from 'axios';
 
 const AIAdvice = () => {
@@ -116,12 +115,7 @@ const AIAdvice = () => {
             </div>
 
             {/* Bottom Section - Financial Overview Components */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-              {/* Allowance Prediction */}
-              <div className="bg-slate-800/90 backdrop-blur-sm rounded-xl shadow-lg border border-slate-600/50 p-6">
-                <AllowancePrediction />
-              </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               {/* Quick Overview */}
               {summary && (
