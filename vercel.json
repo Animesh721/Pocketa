@@ -1,5 +1,11 @@
 {
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "frontend/build",
-  "installCommand": "npm install --ignore-scripts && cd frontend && npm install && cd ../backend && npm install"
+  "installCommand": "npm install --ignore-scripts && cd frontend && npm install && cd ../backend && npm install",
+  "rewrites": [
+    {
+      "source": "/((?!api).*)",
+      "destination": "/index.html"
+    }
+  ]
 }
