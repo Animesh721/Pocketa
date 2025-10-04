@@ -19,8 +19,15 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: 'No token provided' });
     }
 
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({
+        message: 'Authentication configuration missing',
+        error: 'JWT_SECRET not set'
+      });
+    }
+
     const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     userId = new ObjectId(decoded.userId);
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });
@@ -30,12 +37,18 @@ export default async function handler(req, res) {
 
   try {
     // Connect to MongoDB
+    // Optimized for Vercel serverless functions
     console.log('Connecting to MongoDB...');
+    if (!process.env.MONGODB_URI) {
+      return res.status(500).json({
+        message: 'Database configuration missing',
+        error: 'MONGODB_URI not set'
+      });
+    }
+
     client = new MongoClient(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 15000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-      minPoolSize: 5,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 5000,
     });
 
     await client.connect();
