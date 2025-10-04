@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-require('dotenv').config();
+require('dotenv').config();this
 
 const AllowanceTopup = require('./models/AllowanceTopup');
 const User = require('./models/User');
