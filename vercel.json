@@ -1,33 +1,5 @@
 {
-  "version": 2,
-  "name": "pocketa",
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "frontend/build",
-  "installCommand": "npm install --ignore-scripts && cd frontend && npm install && cd ../backend && npm install",
-  "functions": {
-    "api/**/*.js": {
-      "maxDuration": 30
-    }
-  },
-  "routes": [
-    {
-      "src": "/api/auth/register",
-      "dest": "/api/auth/register.js"
-    },
-    {
-      "src": "/api/auth/login",
-      "dest": "/api/auth/login.js"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/((?!api|static|_next).*)",
-      "dest": "/index.html"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "installCommand": "npm install --ignore-scripts && cd frontend && npm install && cd ../backend && npm install"
 }
