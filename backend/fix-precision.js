@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose =makrequire('mongoose');
 require('dotenv').config();this
 
 const AllowanceTopup = require('./models/AllowanceTopup');

@@ -137,26 +137,26 @@ const Dashboard = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header Section */}
       <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border-b border-slate-700/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div className="mb-4 sm:mb-0">
-              <h1 className="text-3xl font-bold text-white">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="mb-2 sm:mb-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">
                 Welcome back, {user?.name}
               </h1>
-              <p className="text-lg text-slate-300 mt-1">
+              <p className="text-sm sm:text-lg text-slate-300 mt-1">
                 {formatPeriodDisplay()}
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <button
                 onClick={() => navigate('/add-expense')}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-xl hover:shadow-blue-500/40"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all duration-200 shadow-xl hover:shadow-blue-500/40 text-sm sm:text-base"
               >
                 Add Expense
               </button>
               <button
                 onClick={() => navigate('/allowance')}
-                className="bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 font-medium px-6 py-3 rounded-lg border border-slate-600/50 transition-all duration-200 shadow-lg hover:shadow-xl backdrop-blur-sm"
+                className="bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 font-medium px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg border border-slate-600/50 transition-all duration-200 shadow-lg hover:shadow-xl backdrop-blur-sm text-sm sm:text-base"
               >
                 Manage Allowance
               </button>
@@ -166,10 +166,10 @@ const Dashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Key Metrics Grid */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
             {/* Current Allowance Balance */}
             <div className="stat-card animate-fade-in">
               <div className="flex items-center justify-between mb-4">

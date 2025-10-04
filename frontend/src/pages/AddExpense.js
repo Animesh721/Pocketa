@@ -201,9 +201,9 @@ const AddExpense = () => {
   if (showConfirmation) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="max-w-md mx-auto px-4 py-8">
+        <div className="max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-8">
           <div className="card">
-            <h2 className="text-xl font-semibold text-white mb-6">Confirm Expense</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6">Confirm Expense</h2>
 
             <div className="space-y-4 mb-6">
               <div className="flex justify-between">
