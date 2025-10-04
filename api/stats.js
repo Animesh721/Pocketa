@@ -100,13 +100,21 @@ module.exports = async function handler(req, res) {
 
     const totalSpentThisMonth = monthlyTransactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
 
+    // Get total monthly allowance deposits (not just last allowance)
+    const allowances = db.collection('allowances');
+    const monthlyAllowances = await allowances.find({
+      userId,
+      createdAt: { $gte: startOfMonth }
+    }).toArray();
+    const totalMonthlyAllowances = monthlyAllowances.reduce((sum, a) => sum + (a.amount || 0), 0);
+
     return res.json({
       currentBalance: user.currentBalance || 0,
       lastAllowanceAmount: user.lastAllowanceAmount || 0,
       allowance: {
         spent: spendingByCategory['Allowance'],
-        budget: user.lastAllowanceAmount || 0,
-        remaining: Math.max(0, (user.lastAllowanceAmount || 0) - spendingByCategory['Allowance'])
+        budget: totalMonthlyAllowances || 0,
+        remaining: Math.max(0, (totalMonthlyAllowances || 0) - spendingByCategory['Allowance'])
       },
       essentials: {
         spent: spendingByCategory['Essentials'],

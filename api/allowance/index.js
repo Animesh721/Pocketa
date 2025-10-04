@@ -66,7 +66,8 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      const allowanceAmount = parseFloat(amount);
+      // Round to 2 decimal places to avoid floating point precision issues
+      const allowanceAmount = Math.round(parseFloat(amount) * 100) / 100;
 
       // Create allowance record
       const allowances = db.collection('allowances');
@@ -106,7 +107,7 @@ module.exports = async function handler(req, res) {
         createdAt: { $gte: startOfMonth }
       }).toArray();
 
-      const totalDeposits = monthlyAllowances.reduce((sum, a) => sum + a.amount, 0);
+      const totalDeposits = Math.round(monthlyAllowances.reduce((sum, a) => sum + a.amount, 0) * 100) / 100;
 
       // Get total expenses this month
       const transactions = db.collection('transactions');
@@ -115,10 +116,10 @@ module.exports = async function handler(req, res) {
         createdAt: { $gte: startOfMonth }
       }).toArray();
 
-      const totalExpenses = monthlyTransactions.reduce((sum, t) => sum + t.amount, 0);
+      const totalExpenses = Math.round(monthlyTransactions.reduce((sum, t) => sum + t.amount, 0) * 100) / 100;
 
       // Calculate correct balance and update if different
-      const correctBalance = Math.max(0, totalDeposits - totalExpenses);
+      const correctBalance = Math.max(0, Math.round((totalDeposits - totalExpenses) * 100) / 100);
 
       await users.updateOne(
         { _id: userId },

@@ -77,7 +77,7 @@ module.exports = async function handler(req, res) {
       createdAt: { $gte: startOfMonth }
     }).toArray();
 
-    const totalSpent = monthlyTransactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
+    const totalSpent = Math.round(monthlyTransactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0) * 100) / 100;
 
     console.log('Current Allowance API Debug - Monthly Transactions:', {
       count: monthlyTransactions.length,
@@ -98,7 +98,7 @@ module.exports = async function handler(req, res) {
       createdAt: { $gte: startOfMonth }
     }).toArray();
 
-    const totalMonthlyAllowances = monthlyAllowances.reduce((sum, allowance) => sum + (allowance.amount || 0), 0);
+    const totalMonthlyAllowances = Math.round(monthlyAllowances.reduce((sum, allowance) => sum + (allowance.amount || 0), 0) * 100) / 100;
 
     console.log('Current Allowance API Debug - Monthly Allowances:', {
       count: monthlyAllowances.length,
@@ -122,7 +122,7 @@ module.exports = async function handler(req, res) {
     });
 
     // Standardized balance calculation: monthly allowance deposits - ALL spending
-    const calculatedRemaining = Math.max(0, totalMonthlyAllowances - totalSpent);
+    const calculatedRemaining = Math.max(0, Math.round((totalMonthlyAllowances - totalSpent) * 100) / 100);
 
     // Use user's current balance if it's reasonable, otherwise use calculated
     // This handles cases where transactions were recorded via API but not reflected in calculation
