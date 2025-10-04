@@ -7,7 +7,8 @@ const AddExpense = () => {
     amount: '',
     description: '',
     category: 'Allowance',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toTimeString().slice(0, 5)
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -135,11 +136,14 @@ const AddExpense = () => {
     setShowConfirmation(false);
 
     try {
+      // Combine date and time into a proper timestamp
+      const dateTime = new Date(`${formData.date}T${formData.time}`);
+
       await axios.post('/api/transactions', {
         amount: parseFloat(formData.amount),
         description: formData.description.trim(),
         category: formData.category,
-        date: formData.date,
+        date: dateTime.toISOString(),
         type: 'expense'
       });
 
@@ -168,7 +172,8 @@ const AddExpense = () => {
         amount: '',
         description: '',
         category: 'Allowance',
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toTimeString().slice(0, 5)
       });
       setValidationErrors({});
       setIsFormValid(false);
@@ -222,8 +227,10 @@ const AddExpense = () => {
               </div>
 
               <div className="flex justify-between">
-                <span className="text-slate-300">Date:</span>
-                <span className="font-medium text-white">{new Date(formData.date).toLocaleDateString()}</span>
+                <span className="text-slate-300">Date & Time:</span>
+                <span className="font-medium text-white">
+                  {new Date(`${formData.date}T${formData.time}`).toLocaleString()}
+                </span>
               </div>
             </div>
 
@@ -361,21 +368,37 @@ const AddExpense = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="date" className="block text-sm font-medium text-slate-300">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    name="date"
-                    id="date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 bg-slate-700/50 text-white ${validationErrors.date ? 'border-red-600/50 focus:ring-red-500' : 'border-slate-600/50 focus:ring-blue-500'}`}
-                  />
-                  {validationErrors.date && (
-                    <p className="text-sm text-red-400">{validationErrors.date}</p>
-                  )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="date" className="block text-sm font-medium text-slate-300">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      name="date"
+                      id="date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 bg-slate-700/50 text-white ${validationErrors.date ? 'border-red-600/50 focus:ring-red-500' : 'border-slate-600/50 focus:ring-blue-500'}`}
+                    />
+                    {validationErrors.date && (
+                      <p className="text-sm text-red-400">{validationErrors.date}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="time" className="block text-sm font-medium text-slate-300">
+                      Time
+                    </label>
+                    <input
+                      type="time"
+                      name="time"
+                      id="time"
+                      value={formData.time}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-slate-600/50 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-slate-700/50 text-white"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex gap-3 pt-4">
