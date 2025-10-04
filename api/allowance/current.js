@@ -124,22 +124,18 @@ module.exports = async function handler(req, res) {
       monthlyTransactionsCount: monthlyTransactions.length
     });
 
-    // For the allowance card: show allowance deposits - allowance category spending
-    const calculatedRemaining = Math.max(0, Math.round((totalMonthlyAllowances - totalSpent) * 100) / 100);
+    // Allowance balance = Monthly allowance deposits - Allowance category spending ONLY
+    // Essentials and Extra categories are tracked separately
+    const allowanceRemaining = Math.max(0, Math.round((totalMonthlyAllowances - totalSpent) * 100) / 100);
 
-    // Use user's actual current balance (which accounts for ALL spending across categories)
-    // This is the real balance available
-    const userBalance = user.currentBalance || 0;
-    const actualRemaining = Math.max(0, userBalance);
-
-    console.log('Balance reconciliation:', {
-      calculatedRemaining,
-      userCurrentBalance: userBalance,
-      actualRemaining
+    console.log('Allowance balance calculation:', {
+      totalMonthlyAllowances,
+      allowanceCategorySpent: totalSpent,
+      allowanceRemaining
     });
 
     return res.json({
-      currentBalance: actualRemaining,
+      currentBalance: allowanceRemaining,
       lastAllowanceAmount: user.lastAllowanceAmount || 0,
       canRequestMore: true,
       nextAllowanceDate: null,
@@ -148,16 +144,14 @@ module.exports = async function handler(req, res) {
       currentTopup: {
         amount: totalMonthlyAllowances || 0,
         spent: totalSpent, // Only Allowance category spending
-        remaining: actualRemaining, // Actual user balance (may be negative)
+        remaining: allowanceRemaining, // Allowance deposits - Allowance spending
         originalAmount: totalMonthlyAllowances || 0,
         carryOverAmount: 0
       },
       debug: {
-        userCurrentBalance: user.currentBalance,
-        calculatedRemaining: calculatedRemaining,
         totalMonthlyAllowances: totalMonthlyAllowances,
-        totalSpent: totalSpent,
-        allowanceOnlySpent: totalSpent
+        allowanceCategorySpent: totalSpent,
+        allowanceRemaining: allowanceRemaining
       }
     });
 

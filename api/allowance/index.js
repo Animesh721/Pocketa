@@ -83,59 +83,18 @@ module.exports = async function handler(req, res) {
       console.log('Creating new allowance:', newAllowance);
       const result = await allowances.insertOne(newAllowance);
 
-      // Update user's current balance and last allowance amount
+      // Update user's last allowance amount only
+      // Note: We don't update currentBalance here because allowances are tracked separately
       const users = db.collection('users');
       await users.updateOne(
         { _id: userId },
         {
-          $inc: { currentBalance: allowanceAmount },
           $set: {
             lastAllowanceAmount: allowanceAmount,
             updatedAt: new Date()
           }
         }
       );
-
-      // Auto-fix balance: recalculate the correct balance after deposit
-      // Get current month data to ensure balance is accurate
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-      // Get total allowance deposits this month (including the one just added)
-      const monthlyAllowances = await allowances.find({
-        userId,
-        createdAt: { $gte: startOfMonth }
-      }).toArray();
-
-      const totalDeposits = Math.round(monthlyAllowances.reduce((sum, a) => sum + a.amount, 0) * 100) / 100;
-
-      // Get total expenses this month
-      const transactions = db.collection('transactions');
-      const monthlyTransactions = await transactions.find({
-        userId,
-        createdAt: { $gte: startOfMonth }
-      }).toArray();
-
-      const totalExpenses = Math.round(monthlyTransactions.reduce((sum, t) => sum + t.amount, 0) * 100) / 100;
-
-      // Calculate correct balance and update if different
-      const correctBalance = Math.max(0, Math.round((totalDeposits - totalExpenses) * 100) / 100);
-
-      await users.updateOne(
-        { _id: userId },
-        {
-          $set: {
-            currentBalance: correctBalance,
-            updatedAt: new Date()
-          }
-        }
-      );
-
-      console.log('Balance auto-corrected:', {
-        totalDeposits,
-        totalExpenses,
-        correctBalance
-      });
 
       console.log('Updated user balance with allowance');
 

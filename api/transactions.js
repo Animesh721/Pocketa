@@ -110,18 +110,13 @@ module.exports = async function handler(req, res) {
       const result = await transactions.insertOne(newTransaction);
       console.log('Transaction inserted with ID:', result.insertedId);
 
-      // Update user's current balance - ALL expenses deduct from allowance balance
-      // Categories are for reporting/tracking only, not balance calculation
-      const users = db.collection('users');
-      await users.updateOne(
-        { _id: userId },
-        {
-          $inc: { currentBalance: -parseFloat(amount) },
-          $set: { updatedAt: new Date() }
-        }
-      );
+      // Note: We don't update currentBalance here
+      // Each category is tracked separately:
+      // - Allowance: tracked via allowances collection vs Allowance category transactions
+      // - Essentials: tracked via essentials budget vs Essentials category transactions
+      // - Extra: no tracking needed
 
-      console.log(`Deducted ₹${amount} from allowance balance for ${category} expense`);
+      console.log(`Added ₹${amount} expense in ${category} category`);
 
       console.log('Updated user balance');
 
