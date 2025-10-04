@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ExpenseChart from '../components/ExpenseChart';
 import RecentTransactions from '../components/RecentTransactions';
@@ -8,6 +9,7 @@ import axios from 'axios';
 const Dashboard = () => {
   console.log('🚀 Dashboard component initializing...');
 
+  const navigate = useNavigate();
   const { user } = useAuth();
   console.log('👤 User from auth context:', user);
 
@@ -139,13 +141,13 @@ const Dashboard = () => {
             </div>
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
               <button
-                onClick={() => window.location.href = '/add-expense'}
+                onClick={() => navigate('/add-expense')}
                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-xl hover:shadow-blue-500/40"
               >
                 Add Expense
               </button>
               <button
-                onClick={() => window.location.href = '/allowance'}
+                onClick={() => navigate('/allowance')}
                 className="bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 font-medium px-6 py-3 rounded-lg border border-slate-600/50 transition-all duration-200 shadow-lg hover:shadow-xl backdrop-blur-sm"
               >
                 Manage Allowance
@@ -222,7 +224,7 @@ const Dashboard = () => {
                     <p className="text-2xl font-bold text-slate-500 mb-1">₹0</p>
                     <p className="text-sm text-slate-400 mb-3">No active allowance</p>
                     <button
-                      onClick={() => window.location.href = '/allowance'}
+                      onClick={() => navigate('/allowance')}
                       className="text-blue-400 hover:text-blue-700 text-sm font-medium"
                     >
                       Add Allowance →
