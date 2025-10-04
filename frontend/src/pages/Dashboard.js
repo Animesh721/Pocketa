@@ -51,6 +51,14 @@ const Dashboard = () => {
       console.log('Dashboard responses received:', { statsResponse, transactionsResponse, allowanceResponse });
       console.log('Stats data structure:', statsResponse.data);
       console.log('Allowance data structure:', allowanceResponse.data);
+      console.log('🔍 ALLOWANCE DEBUG:', {
+        hasActiveAllowance: allowanceResponse.data?.hasActiveAllowance,
+        currentBalance: allowanceResponse.data?.currentBalance,
+        currentTopup: allowanceResponse.data?.currentTopup,
+        remaining: allowanceResponse.data?.currentTopup?.remaining,
+        spent: allowanceResponse.data?.currentTopup?.spent,
+        amount: allowanceResponse.data?.currentTopup?.amount
+      });
 
       setStats(statsResponse.data);
       setTransactions(transactionsResponse.data.transactions || []);
