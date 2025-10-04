@@ -19,6 +19,9 @@ module.exports = async function handler(req, res) {
   let client;
 
   try {
+    console.log('Register endpoint called');
+    console.log('Request body:', JSON.stringify(req.body));
+
     // Optimized for Vercel serverless functions
     console.log('Connecting to MongoDB with native driver for registration...');
     if (!process.env.MONGODB_URI) {
@@ -41,11 +44,14 @@ module.exports = async function handler(req, res) {
 
     const { username, name, email, password, confirmPassword } = req.body;
 
+    console.log('Register request body:', { username, name, email, hasPassword: !!password });
+
     // Use username as name if name is not provided
     const userName = name || username;
 
     // Validation
     if (!userName || !email || !password) {
+      console.log('Validation failed:', { userName, email, hasPassword: !!password });
       return res.status(400).json({ message: 'All fields are required' });
     }
 
