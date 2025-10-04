@@ -71,9 +71,12 @@ module.exports = async function handler(req, res) {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Get ALL monthly spending (all categories affect allowance balance)
+    // Get ONLY Allowance category spending (for display purposes)
+    // Note: All categories deduct from user.currentBalance, but for the allowance card
+    // we only show spending in the "Allowance" category
     const monthlyTransactions = await transactions.find({
       userId,
+      category: 'Allowance', // Only Allowance category
       createdAt: { $gte: startOfMonth }
     }).toArray();
 
@@ -121,22 +124,17 @@ module.exports = async function handler(req, res) {
       monthlyTransactionsCount: monthlyTransactions.length
     });
 
-    // Standardized balance calculation: monthly allowance deposits - ALL spending
+    // For the allowance card: show allowance deposits - allowance category spending
     const calculatedRemaining = Math.max(0, Math.round((totalMonthlyAllowances - totalSpent) * 100) / 100);
 
-    // Use user's current balance if it's reasonable, otherwise use calculated
-    // This handles cases where transactions were recorded via API but not reflected in calculation
+    // Use user's actual current balance (which accounts for ALL spending across categories)
+    // This is the real balance available
     const userBalance = user.currentBalance || 0;
-    const balanceDifference = Math.abs(userBalance - calculatedRemaining);
-
-    // If user balance is close to calculated (within ₹10 difference), trust user balance
-    const actualRemaining = (balanceDifference <= 10 && userBalance >= 0) ? userBalance : calculatedRemaining;
+    const actualRemaining = Math.max(0, userBalance);
 
     console.log('Balance reconciliation:', {
       calculatedRemaining,
       userCurrentBalance: userBalance,
-      difference: balanceDifference,
-      usingUserBalance: balanceDifference <= 10 && userBalance >= 0,
       actualRemaining
     });
 
@@ -149,8 +147,8 @@ module.exports = async function handler(req, res) {
       hasActiveAllowance: totalMonthlyAllowances > 0,
       currentTopup: {
         amount: totalMonthlyAllowances || 0,
-        spent: totalSpent, // ALL expenses affect allowance
-        remaining: actualRemaining,
+        spent: totalSpent, // Only Allowance category spending
+        remaining: actualRemaining, // Actual user balance (may be negative)
         originalAmount: totalMonthlyAllowances || 0,
         carryOverAmount: 0
       },
@@ -158,7 +156,8 @@ module.exports = async function handler(req, res) {
         userCurrentBalance: user.currentBalance,
         calculatedRemaining: calculatedRemaining,
         totalMonthlyAllowances: totalMonthlyAllowances,
-        totalSpent: totalSpent
+        totalSpent: totalSpent,
+        allowanceOnlySpent: totalSpent
       }
     });
 
